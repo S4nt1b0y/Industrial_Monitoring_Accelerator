@@ -1,0 +1,234 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1160" viewBox="0 0 1600 1160">
+<rect width="1600" height="1160" fill="#f8fafc"/>
+<style>text{font-family:Arial,Helvetica,sans-serif;fill:#172033}.title{font-size:30px;font-weight:700}.h{font-size:18px;font-weight:700}.small{font-size:12px}.tiny{font-size:10px}.box{fill:#fff;stroke:#b7c2d0;stroke-width:1.4}.edge{stroke:#687385;stroke-width:1.15;fill:none}.leaf text{fill:#fff}.leaf rect{stroke:none}.note{fill:#475569}</style>
+<text x="60" y="54" class="title">Classificador FFT Q1.15 com arvore de decisao pequena</text>
+<text x="60" y="84" class="small note">Entrada: 4 canais de aceleracao Q1.15 | Janela: 64 amostras | Features: 4 x 64 magnitudes aproximadas | Saida: classe inteira 0..3</text>
+<rect x="50" y="112" width="1500" height="180" rx="8" class="box"/>
+<text x="75" y="146" class="h">Extracao de features</text>
+<rect x="85" y="170" width="240" height="78" rx="6" fill="#ffffff" stroke="#94a3b8"/>
+<text x="101" y="202" class="h">Dataset Q1.15</text>
+<text x="101" y="226" class="small note">4 colunas int16</text>
+<path d="M325 209 L370 209" class="edge"/>
+<path d="M362 201 L370 209 L362 217" class="edge"/>
+<rect x="380" y="170" width="240" height="78" rx="6" fill="#ffffff" stroke="#94a3b8"/>
+<text x="396" y="202" class="h">Janelas</text>
+<text x="396" y="226" class="small note">64 amostras sem cruzar label</text>
+<path d="M620 209 L665 209" class="edge"/>
+<path d="M657 201 L665 209 L657 217" class="edge"/>
+<rect x="675" y="170" width="240" height="78" rx="6" fill="#ffffff" stroke="#94a3b8"/>
+<text x="691" y="202" class="h">FFT 64 pontos</text>
+<text x="691" y="226" class="small note">real/imag em Q1.15</text>
+<path d="M915 209 L960 209" class="edge"/>
+<path d="M952 201 L960 209 L952 217" class="edge"/>
+<rect x="970" y="170" width="240" height="78" rx="6" fill="#ffffff" stroke="#94a3b8"/>
+<text x="986" y="202" class="h">Magnitude RTL-friendly</text>
+<text x="986" y="226" class="small note">min(32767, |real|+|imag|)</text>
+<path d="M1210 209 L1255 209" class="edge"/>
+<path d="M1247 201 L1255 209 L1247 217" class="edge"/>
+<rect x="1265" y="170" width="240" height="78" rx="6" fill="#ffffff" stroke="#94a3b8"/>
+<text x="1281" y="202" class="h">Vetor final</text>
+<text x="1281" y="226" class="small note">256 features Q1.15</text>
+<text x="75" y="278" class="small note">Mapa: f[0..63]=Ax A, f[64..127]=Ay A, f[128..191]=Ax B, f[192..255]=Ay B. Cada indice guarda o bin FFT correspondente.</text>
+<text x="60" y="332" class="h">Arvore treinada exportada para RTL</text>
+<text x="350" y="332" class="small note">Regra: se feature[indice] &lt;= threshold_q15, vai para esquerda; caso contrario, direita.</text>
+<path d="M1064.1 394.0 L698.8 438.0" class="edge"/>
+<text x="881.5" y="412.0" class="tiny note">sim</text>
+<path d="M1064.1 394.0 L1429.4 438.0" class="edge"/>
+<text x="1246.8" y="412.0" class="tiny note">nao</text>
+<path d="M698.8 506.0 L374.1 550.0" class="edge"/>
+<text x="536.5" y="524.0" class="tiny note">sim</text>
+<path d="M698.8 506.0 L1023.5 550.0" class="edge"/>
+<text x="861.2" y="524.0" class="tiny note">nao</text>
+<path d="M374.1 618.0 L211.8 662.0" class="edge"/>
+<text x="292.9" y="636.0" class="tiny note">sim</text>
+<path d="M374.1 618.0 L536.5 662.0" class="edge"/>
+<text x="455.3" y="636.0" class="tiny note">nao</text>
+<path d="M211.8 730.0 L130.6 774.0" class="edge"/>
+<text x="171.2" y="748.0" class="tiny note">sim</text>
+<path d="M211.8 730.0 L292.9 774.0" class="edge"/>
+<text x="252.4" y="748.0" class="tiny note">nao</text>
+<path d="M130.6 842.0 L90.0 886.0" class="edge"/>
+<text x="110.3" y="860.0" class="tiny note">sim</text>
+<path d="M130.6 842.0 L171.2 886.0" class="edge"/>
+<text x="150.9" y="860.0" class="tiny note">nao</text>
+<path d="M292.9 842.0 L252.4 886.0" class="edge"/>
+<text x="272.6" y="860.0" class="tiny note">sim</text>
+<path d="M292.9 842.0 L333.5 886.0" class="edge"/>
+<text x="313.2" y="860.0" class="tiny note">nao</text>
+<path d="M536.5 730.0 L455.3 774.0" class="edge"/>
+<text x="495.9" y="748.0" class="tiny note">sim</text>
+<path d="M536.5 730.0 L617.6 774.0" class="edge"/>
+<text x="577.1" y="748.0" class="tiny note">nao</text>
+<path d="M455.3 842.0 L414.7 886.0" class="edge"/>
+<text x="435.0" y="860.0" class="tiny note">sim</text>
+<path d="M455.3 842.0 L495.9 886.0" class="edge"/>
+<text x="475.6" y="860.0" class="tiny note">nao</text>
+<path d="M617.6 842.0 L577.1 886.0" class="edge"/>
+<text x="597.4" y="860.0" class="tiny note">sim</text>
+<path d="M617.6 842.0 L658.2 886.0" class="edge"/>
+<text x="637.9" y="860.0" class="tiny note">nao</text>
+<path d="M1023.5 618.0 L861.2 662.0" class="edge"/>
+<text x="942.4" y="636.0" class="tiny note">sim</text>
+<path d="M1023.5 618.0 L1185.9 662.0" class="edge"/>
+<text x="1104.7" y="636.0" class="tiny note">nao</text>
+<path d="M861.2 730.0 L780.0 774.0" class="edge"/>
+<text x="820.6" y="748.0" class="tiny note">sim</text>
+<path d="M861.2 730.0 L942.4 774.0" class="edge"/>
+<text x="901.8" y="748.0" class="tiny note">nao</text>
+<path d="M780.0 842.0 L739.4 886.0" class="edge"/>
+<text x="759.7" y="860.0" class="tiny note">sim</text>
+<path d="M780.0 842.0 L820.6 886.0" class="edge"/>
+<text x="800.3" y="860.0" class="tiny note">nao</text>
+<path d="M942.4 842.0 L901.8 886.0" class="edge"/>
+<text x="922.1" y="860.0" class="tiny note">sim</text>
+<path d="M942.4 842.0 L982.9 886.0" class="edge"/>
+<text x="962.6" y="860.0" class="tiny note">nao</text>
+<path d="M1185.9 730.0 L1104.7 774.0" class="edge"/>
+<text x="1145.3" y="748.0" class="tiny note">sim</text>
+<path d="M1185.9 730.0 L1267.1 774.0" class="edge"/>
+<text x="1226.5" y="748.0" class="tiny note">nao</text>
+<path d="M1104.7 842.0 L1064.1 886.0" class="edge"/>
+<text x="1084.4" y="860.0" class="tiny note">sim</text>
+<path d="M1104.7 842.0 L1145.3 886.0" class="edge"/>
+<text x="1125.0" y="860.0" class="tiny note">nao</text>
+<path d="M1267.1 842.0 L1226.5 886.0" class="edge"/>
+<text x="1246.8" y="860.0" class="tiny note">sim</text>
+<path d="M1267.1 842.0 L1307.6 886.0" class="edge"/>
+<text x="1287.4" y="860.0" class="tiny note">nao</text>
+<path d="M1429.4 506.0 L1388.8 550.0" class="edge"/>
+<text x="1409.1" y="524.0" class="tiny note">sim</text>
+<path d="M1429.4 506.0 L1470.0 550.0" class="edge"/>
+<text x="1449.7" y="524.0" class="tiny note">nao</text>
+<rect x="998.1" y="324.0" width="132" height="72" rx="6" class="box"/>
+<text x="1064.1" y="345.0" class="small" text-anchor="middle">no 0: f[195]</text>
+<text x="1064.1" y="363.0" class="tiny note" text-anchor="middle">Ay B bin 3</text>
+<text x="1064.1" y="381.0" class="tiny note" text-anchor="middle">&lt;= 568</text>
+<rect x="632.8" y="436.0" width="132" height="72" rx="6" class="box"/>
+<text x="698.8" y="457.0" class="small" text-anchor="middle">no 1: f[215]</text>
+<text x="698.8" y="475.0" class="tiny note" text-anchor="middle">Ay B bin 23</text>
+<text x="698.8" y="493.0" class="tiny note" text-anchor="middle">&lt;= 1854</text>
+<rect x="308.1" y="548.0" width="132" height="72" rx="6" class="box"/>
+<text x="374.1" y="569.0" class="small" text-anchor="middle">no 2: f[9]</text>
+<text x="374.1" y="587.0" class="tiny note" text-anchor="middle">Ax A bin 9</text>
+<text x="374.1" y="605.0" class="tiny note" text-anchor="middle">&lt;= 100</text>
+<rect x="145.8" y="660.0" width="132" height="72" rx="6" class="box"/>
+<text x="211.8" y="681.0" class="small" text-anchor="middle">no 3: f[215]</text>
+<text x="211.8" y="699.0" class="tiny note" text-anchor="middle">Ay B bin 23</text>
+<text x="211.8" y="717.0" class="tiny note" text-anchor="middle">&lt;= 1286</text>
+<rect x="64.6" y="772.0" width="132" height="72" rx="6" class="box"/>
+<text x="130.6" y="793.0" class="small" text-anchor="middle">no 4: f[15]</text>
+<text x="130.6" y="811.0" class="tiny note" text-anchor="middle">Ax A bin 15</text>
+<text x="130.6" y="829.0" class="tiny note" text-anchor="middle">&lt;= 36</text>
+<g class="leaf"><rect x="36.0" y="893.0" width="108" height="54" rx="6" fill="#2f9e44"/>
+<text x="90.0" y="914.0" class="small" text-anchor="middle">folha 5</text>
+<text x="90.0" y="932.0" class="tiny" text-anchor="middle">classe 0</text></g>
+<g class="leaf"><rect x="117.2" y="893.0" width="108" height="54" rx="6" fill="#2f9e44"/>
+<text x="171.2" y="914.0" class="small" text-anchor="middle">folha 6</text>
+<text x="171.2" y="932.0" class="tiny" text-anchor="middle">classe 0</text></g>
+<rect x="226.9" y="772.0" width="132" height="72" rx="6" class="box"/>
+<text x="292.9" y="793.0" class="small" text-anchor="middle">no 7: f[8]</text>
+<text x="292.9" y="811.0" class="tiny note" text-anchor="middle">Ax A bin 8</text>
+<text x="292.9" y="829.0" class="tiny note" text-anchor="middle">&lt;= 68</text>
+<g class="leaf"><rect x="198.4" y="893.0" width="108" height="54" rx="6" fill="#f08c00"/>
+<text x="252.4" y="914.0" class="small" text-anchor="middle">folha 8</text>
+<text x="252.4" y="932.0" class="tiny" text-anchor="middle">classe 2</text></g>
+<g class="leaf"><rect x="279.5" y="893.0" width="108" height="54" rx="6" fill="#1971c2"/>
+<text x="333.5" y="914.0" class="small" text-anchor="middle">folha 9</text>
+<text x="333.5" y="932.0" class="tiny" text-anchor="middle">classe 1</text></g>
+<rect x="470.5" y="660.0" width="132" height="72" rx="6" class="box"/>
+<text x="536.5" y="681.0" class="small" text-anchor="middle">no 10: f[215]</text>
+<text x="536.5" y="699.0" class="tiny note" text-anchor="middle">Ay B bin 23</text>
+<text x="536.5" y="717.0" class="tiny note" text-anchor="middle">&lt;= 1315</text>
+<rect x="389.3" y="772.0" width="132" height="72" rx="6" class="box"/>
+<text x="455.3" y="793.0" class="small" text-anchor="middle">no 11: f[55]</text>
+<text x="455.3" y="811.0" class="tiny note" text-anchor="middle">Ax A bin 55</text>
+<text x="455.3" y="829.0" class="tiny note" text-anchor="middle">&lt;= 140</text>
+<g class="leaf"><rect x="360.7" y="893.0" width="108" height="54" rx="6" fill="#2f9e44"/>
+<text x="414.7" y="914.0" class="small" text-anchor="middle">folha 12</text>
+<text x="414.7" y="932.0" class="tiny" text-anchor="middle">classe 0</text></g>
+<g class="leaf"><rect x="441.9" y="893.0" width="108" height="54" rx="6" fill="#1971c2"/>
+<text x="495.9" y="914.0" class="small" text-anchor="middle">folha 13</text>
+<text x="495.9" y="932.0" class="tiny" text-anchor="middle">classe 1</text></g>
+<rect x="551.6" y="772.0" width="132" height="72" rx="6" class="box"/>
+<text x="617.6" y="793.0" class="small" text-anchor="middle">no 14: f[87]</text>
+<text x="617.6" y="811.0" class="tiny note" text-anchor="middle">Ay A bin 23</text>
+<text x="617.6" y="829.0" class="tiny note" text-anchor="middle">&lt;= 16</text>
+<g class="leaf"><rect x="523.1" y="893.0" width="108" height="54" rx="6" fill="#2f9e44"/>
+<text x="577.1" y="914.0" class="small" text-anchor="middle">folha 15</text>
+<text x="577.1" y="932.0" class="tiny" text-anchor="middle">classe 0</text></g>
+<g class="leaf"><rect x="604.2" y="893.0" width="108" height="54" rx="6" fill="#1971c2"/>
+<text x="658.2" y="914.0" class="small" text-anchor="middle">folha 16</text>
+<text x="658.2" y="932.0" class="tiny" text-anchor="middle">classe 1</text></g>
+<rect x="957.5" y="548.0" width="132" height="72" rx="6" class="box"/>
+<text x="1023.5" y="569.0" class="small" text-anchor="middle">no 17: f[9]</text>
+<text x="1023.5" y="587.0" class="tiny note" text-anchor="middle">Ax A bin 9</text>
+<text x="1023.5" y="605.0" class="tiny note" text-anchor="middle">&lt;= 56</text>
+<rect x="795.2" y="660.0" width="132" height="72" rx="6" class="box"/>
+<text x="861.2" y="681.0" class="small" text-anchor="middle">no 18: f[8]</text>
+<text x="861.2" y="699.0" class="tiny note" text-anchor="middle">Ax A bin 8</text>
+<text x="861.2" y="717.0" class="tiny note" text-anchor="middle">&lt;= 44</text>
+<rect x="714.0" y="772.0" width="132" height="72" rx="6" class="box"/>
+<text x="780.0" y="793.0" class="small" text-anchor="middle">no 19: f[105]</text>
+<text x="780.0" y="811.0" class="tiny note" text-anchor="middle">Ay A bin 41</text>
+<text x="780.0" y="829.0" class="tiny note" text-anchor="middle">&lt;= 32</text>
+<g class="leaf"><rect x="685.4" y="893.0" width="108" height="54" rx="6" fill="#f08c00"/>
+<text x="739.4" y="914.0" class="small" text-anchor="middle">folha 20</text>
+<text x="739.4" y="932.0" class="tiny" text-anchor="middle">classe 2</text></g>
+<g class="leaf"><rect x="766.6" y="893.0" width="108" height="54" rx="6" fill="#1971c2"/>
+<text x="820.6" y="914.0" class="small" text-anchor="middle">folha 21</text>
+<text x="820.6" y="932.0" class="tiny" text-anchor="middle">classe 1</text></g>
+<rect x="876.4" y="772.0" width="132" height="72" rx="6" class="box"/>
+<text x="942.4" y="793.0" class="small" text-anchor="middle">no 22: f[105]</text>
+<text x="942.4" y="811.0" class="tiny note" text-anchor="middle">Ay A bin 41</text>
+<text x="942.4" y="829.0" class="tiny note" text-anchor="middle">&lt;= 22</text>
+<g class="leaf"><rect x="847.8" y="893.0" width="108" height="54" rx="6" fill="#f08c00"/>
+<text x="901.8" y="914.0" class="small" text-anchor="middle">folha 23</text>
+<text x="901.8" y="932.0" class="tiny" text-anchor="middle">classe 2</text></g>
+<g class="leaf"><rect x="928.9" y="893.0" width="108" height="54" rx="6" fill="#1971c2"/>
+<text x="982.9" y="914.0" class="small" text-anchor="middle">folha 24</text>
+<text x="982.9" y="932.0" class="tiny" text-anchor="middle">classe 1</text></g>
+<rect x="1119.9" y="660.0" width="132" height="72" rx="6" class="box"/>
+<text x="1185.9" y="681.0" class="small" text-anchor="middle">no 25: f[87]</text>
+<text x="1185.9" y="699.0" class="tiny note" text-anchor="middle">Ay A bin 23</text>
+<text x="1185.9" y="717.0" class="tiny note" text-anchor="middle">&lt;= 20</text>
+<rect x="1038.7" y="772.0" width="132" height="72" rx="6" class="box"/>
+<text x="1104.7" y="793.0" class="small" text-anchor="middle">no 26: f[55]</text>
+<text x="1104.7" y="811.0" class="tiny note" text-anchor="middle">Ax A bin 55</text>
+<text x="1104.7" y="829.0" class="tiny note" text-anchor="middle">&lt;= 100</text>
+<g class="leaf"><rect x="1010.1" y="893.0" width="108" height="54" rx="6" fill="#f08c00"/>
+<text x="1064.1" y="914.0" class="small" text-anchor="middle">folha 27</text>
+<text x="1064.1" y="932.0" class="tiny" text-anchor="middle">classe 2</text></g>
+<g class="leaf"><rect x="1091.3" y="893.0" width="108" height="54" rx="6" fill="#1971c2"/>
+<text x="1145.3" y="914.0" class="small" text-anchor="middle">folha 28</text>
+<text x="1145.3" y="932.0" class="tiny" text-anchor="middle">classe 1</text></g>
+<rect x="1201.1" y="772.0" width="132" height="72" rx="6" class="box"/>
+<text x="1267.1" y="793.0" class="small" text-anchor="middle">no 29: f[55]</text>
+<text x="1267.1" y="811.0" class="tiny note" text-anchor="middle">Ax A bin 55</text>
+<text x="1267.1" y="829.0" class="tiny note" text-anchor="middle">&lt;= 76</text>
+<g class="leaf"><rect x="1172.5" y="893.0" width="108" height="54" rx="6" fill="#1971c2"/>
+<text x="1226.5" y="914.0" class="small" text-anchor="middle">folha 30</text>
+<text x="1226.5" y="932.0" class="tiny" text-anchor="middle">classe 1</text></g>
+<g class="leaf"><rect x="1253.6" y="893.0" width="108" height="54" rx="6" fill="#1971c2"/>
+<text x="1307.6" y="914.0" class="small" text-anchor="middle">folha 31</text>
+<text x="1307.6" y="932.0" class="tiny" text-anchor="middle">classe 1</text></g>
+<rect x="1363.4" y="436.0" width="132" height="72" rx="6" class="box"/>
+<text x="1429.4" y="457.0" class="small" text-anchor="middle">no 32: f[253]</text>
+<text x="1429.4" y="475.0" class="tiny note" text-anchor="middle">Ay B bin 61</text>
+<text x="1429.4" y="493.0" class="tiny note" text-anchor="middle">&lt;= 671</text>
+<g class="leaf"><rect x="1334.8" y="557.0" width="108" height="54" rx="6" fill="#c92a2a"/>
+<text x="1388.8" y="578.0" class="small" text-anchor="middle">folha 33</text>
+<text x="1388.8" y="596.0" class="tiny" text-anchor="middle">classe 3</text></g>
+<g class="leaf"><rect x="1416.0" y="557.0" width="108" height="54" rx="6" fill="#c92a2a"/>
+<text x="1470.0" y="578.0" class="small" text-anchor="middle">folha 34</text>
+<text x="1470.0" y="596.0" class="tiny" text-anchor="middle">classe 3</text></g>
+<rect x="50" y="1062" width="1500" height="58" rx="8" class="box"/>
+<text x="75" y="1096" class="h">Classes</text>
+<rect x="180" y="1078" width="18" height="18" rx="3" fill="#2f9e44"/>
+<text x="208" y="1092" class="small">0 = operacao_normal</text>
+<rect x="510" y="1078" width="18" height="18" rx="3" fill="#1971c2"/>
+<text x="538" y="1092" class="small">1 = desalinhamento</text>
+<rect x="840" y="1078" width="18" height="18" rx="3" fill="#f08c00"/>
+<text x="868" y="1092" class="small">2 = desbalanceamento</text>
+<rect x="1170" y="1078" width="18" height="18" rx="3" fill="#c92a2a"/>
+<text x="1198" y="1092" class="small">3 = desgaste_rolamento</text>
+</svg>

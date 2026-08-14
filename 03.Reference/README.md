@@ -10,5 +10,5 @@ floating-point error.
 | fft | not implemented |
 | matrix_inv | not implemented |
 | lms | not implemented |
-| ml_classifier | not implemented |
+| ml_classifier | implemented: see `artifacts/ml_classifier/README.md` |
 | cnn | not implemented |
