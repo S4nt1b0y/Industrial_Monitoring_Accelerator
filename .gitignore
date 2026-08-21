@@ -90,3 +90,7 @@ htmlcov/
 ~$*.pptx
 ~$*.docx
 ~$*.xlsx
+
+**/*.tdms
+**/*.mat
+**/*.parquet
