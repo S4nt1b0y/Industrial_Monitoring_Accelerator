@@ -8,6 +8,8 @@ N = 64
 M = 6
 W = 16
 FRACW = 15
+NUM_WINDOWS = 10
+INPUT_FILE = Path("input.txt")
 OUT_FILE = Path("python_output.txt")
 
 
@@ -29,12 +31,44 @@ def q15_twiddle(k):
     return re, im
 
 
-def sample_re(idx):
-    return ((idx * 1103 + 12345) % 24576) - 12288
+def sample_re(window, idx):
+    return ((window * 4093 + idx * 1103 + 12345) % 24576) - 12288
 
 
-def sample_im(idx):
-    return ((idx * 1877 + 5432) % 16384) - 8192
+def sample_im(window, idx):
+    return ((window * 2053 + idx * 1877 + 5432) % 16384) - 8192
+
+def read_input_file(path=INPUT_FILE):
+    if not path.exists():
+        raise ValueError(
+            f"{path}: not found. Run this script from 05.Sim/fft or add input.txt there."
+        )
+
+    windows = [[None for _ in range(N)] for _ in range(NUM_WINDOWS)]
+    for line_no, line in enumerate(path.read_text(encoding="ascii").splitlines(), 1):
+        if not line.strip():
+            continue
+
+        fields = line.split()
+        if len(fields) != 4:
+            raise ValueError(f"{path}:{line_no}: expected 4 fields")
+
+        window, sample, re, im = map(int, fields)
+        if not (0 <= window < NUM_WINDOWS):
+            raise ValueError(f"{path}:{line_no}: window out of range")
+        if not (0 <= sample < N):
+            raise ValueError(f"{path}:{line_no}: sample out of range")
+        if windows[window][sample] is not None:
+            raise ValueError(f"{path}:{line_no}: duplicate sample")
+
+        windows[window][sample] = (to_signed(re, W), to_signed(im, W))
+
+    for window in range(NUM_WINDOWS):
+        for sample in range(N):
+            if windows[window][sample] is None:
+                raise ValueError(f"{path}: missing window {window} sample {sample}")
+
+    return windows
 
 
 def brev(value, bits=M):
@@ -110,13 +144,16 @@ def fft_dif_q15(in_re, in_im):
 
 
 def main():
-    in_re = [sample_re(i) for i in range(N)]
-    in_im = [sample_im(i) for i in range(N)]
-    out_re, out_im = fft_dif_q15(in_re, in_im)
+    windows = read_input_file()
 
     with OUT_FILE.open("w", encoding="ascii") as file:
-        for i, (re, im) in enumerate(zip(out_re, out_im)):
-            file.write(f"{i} {re} {im}\n")
+        for window, samples in enumerate(windows):
+            in_re = [re for re, _ in samples]
+            in_im = [im for _, im in samples]
+            out_re, out_im = fft_dif_q15(in_re, in_im)
+
+            for idx, (re, im) in enumerate(zip(out_re, out_im)):
+                file.write(f"{window} {idx} {re} {im}\n")
 
     print(f"Python fixed-point FFT output written to {OUT_FILE}")
 
