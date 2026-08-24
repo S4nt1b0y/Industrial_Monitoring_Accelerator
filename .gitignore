@@ -87,6 +87,10 @@ env/
 .coverage
 htmlcov/
 
+# Vetores de Teste
+vectors/
+
+# Documentos temporários
 ~$*.pptx
 ~$*.docx
 ~$*.xlsx

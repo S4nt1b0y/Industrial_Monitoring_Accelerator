@@ -1,0 +1,5 @@
+Retificação do Problema de Circuitos Digitais IV.
+Onde se lê, no item 3.5:
+“O classificador deverá receber como entradas características extraídas da FFT, do filtro LMS e da etapa de estimação matricial.”
+Leia-se:
+“O classificador deverá receber como entrada a saída do filtro LMS.”

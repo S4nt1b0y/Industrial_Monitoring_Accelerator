@@ -8,7 +8,7 @@ the first commit.
 |---|---|---|
 | MDC (GCD) | `mdc/mdc.v` | not implemented |
 | FFT (64-pt) | `fft/fft.v` | not implemented |
-| Matrix inversion (4x4) | `matrix_inv/matrix_inv.v` | not implemented |
+| Matrix inversion (2x2/3x3/4x4, 4 algorithms) | `matrix_inv/` — see its `README.md` | Gauss-Jordan + cofactors implemented, N=2/3/4 passing; LU/QR pending |
 | LMS adaptive filter | `lms/lms.v` | not implemented |
 | ML classifier | `ml_classifier/ml_classifier.v` | not implemented |
 | CNN accelerator | `cnn/cnn.v` | not implemented |
