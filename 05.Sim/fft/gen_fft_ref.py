@@ -30,14 +30,6 @@ def q15_twiddle(k):
     im = q15_saturate(round(math.sin(-2.0 * math.pi * k / N) * scale))
     return re, im
 
-
-def sample_re(window, idx):
-    return ((window * 4093 + idx * 1103 + 12345) % 24576) - 12288
-
-
-def sample_im(window, idx):
-    return ((window * 2053 + idx * 1877 + 5432) % 16384) - 8192
-
 def read_input_file(path=INPUT_FILE):
     if not path.exists():
         raise ValueError(
