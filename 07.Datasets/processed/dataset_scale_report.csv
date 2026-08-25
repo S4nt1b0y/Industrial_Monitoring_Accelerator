@@ -1,5 +1,10 @@
-column,mean_subtracted,max_abs_centered,normalization_factor,q_format,decode_normalized
-aceleracao_x_mancal_a,1.2699221315006496e-05,74.96809161032473,74.96809161032473,int8_q1_7,aceleracao_x_mancal_a_q17 / 128
-aceleracao_y_mancal_a,-0.0004196349957524871,152.43560164962784,152.43560164962784,int8_q1_7,aceleracao_y_mancal_a_q17 / 128
-aceleracao_x_mancal_b,-0.00011098880858368346,33.078777698325204,33.078777698325204,int8_q1_7,aceleracao_x_mancal_b_q17 / 128
-aceleracao_y_mancal_b,-2.934804522952437e-05,16.1908480323301,16.1908480323301,int8_q1_7,aceleracao_y_mancal_b_q17 / 128
+column,max_abs_original,normalization_factor,q_format,decode_normalized
+aceleracao_x_mancal_a,74.96807891110342,74.96807891110342,int16_q1_15,aceleracao_x_mancal_a_q15 / 32768
+aceleracao_y_mancal_a,152.4360212846236,152.4360212846236,int16_q1_15,aceleracao_y_mancal_a_q15 / 32768
+aceleracao_x_mancal_b,23.448092799072267,23.448092799072267,int16_q1_15,aceleracao_x_mancal_b_q15 / 32768
+aceleracao_y_mancal_b,12.309887294521083,12.309887294521083,int16_q1_15,aceleracao_y_mancal_b_q15 / 32768
+temperatura_mancal_a,31.646274843467843,31.646274843467843,int16_q1_15,temperatura_mancal_a_q15 / 32768
+temperatura_mancal_b,30.53695118746925,30.53695118746925,int16_q1_15,temperatura_mancal_b_q15 / 32768
+corrente_fase_u,4.703538206732652,4.703538206732652,int16_q1_15,corrente_fase_u_q15 / 32768
+corrente_fase_v,4.565573091735292,4.565573091735292,int16_q1_15,corrente_fase_v_q15 / 32768
+corrente_fase_w,3.6426877075561794,3.6426877075561794,int16_q1_15,corrente_fase_w_q15 / 32768
