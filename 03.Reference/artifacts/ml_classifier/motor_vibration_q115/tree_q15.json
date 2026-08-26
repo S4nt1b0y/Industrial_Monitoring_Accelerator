@@ -13,7 +13,7 @@
       "node_id": 0,
       "is_leaf": false,
       "feature_index": 102,
-      "threshold_q15": 568,
+      "threshold_q15": 432,
       "left_child": 1,
       "right_child": 32
     },
@@ -21,7 +21,7 @@
       "node_id": 1,
       "is_leaf": false,
       "feature_index": 122,
-      "threshold_q15": 1854,
+      "threshold_q15": 1430,
       "left_child": 2,
       "right_child": 17
     },
@@ -29,7 +29,7 @@
       "node_id": 2,
       "is_leaf": false,
       "feature_index": 9,
-      "threshold_q15": 100,
+      "threshold_q15": 102,
       "left_child": 3,
       "right_child": 10
     },
@@ -37,7 +37,7 @@
       "node_id": 3,
       "is_leaf": false,
       "feature_index": 122,
-      "threshold_q15": 1286,
+      "threshold_q15": 978,
       "left_child": 4,
       "right_child": 7
     },
@@ -65,7 +65,7 @@
       "node_id": 7,
       "is_leaf": false,
       "feature_index": 8,
-      "threshold_q15": 68,
+      "threshold_q15": 66,
       "left_child": 8,
       "right_child": 9
     },
@@ -85,7 +85,7 @@
       "node_id": 10,
       "is_leaf": false,
       "feature_index": 122,
-      "threshold_q15": 1315,
+      "threshold_q15": 1000,
       "left_child": 11,
       "right_child": 14
     },
@@ -113,15 +113,15 @@
       "node_id": 14,
       "is_leaf": false,
       "feature_index": 56,
-      "threshold_q15": 16,
+      "threshold_q15": 18,
       "left_child": 15,
       "right_child": 16
     },
     {
       "node_id": 15,
       "is_leaf": true,
-      "class_id": 0,
-      "class_label": "operacao_normal"
+      "class_id": 1,
+      "class_label": "desalinhamento"
     },
     {
       "node_id": 16,
@@ -169,15 +169,15 @@
       "node_id": 22,
       "is_leaf": false,
       "feature_index": 56,
-      "threshold_q15": 22,
+      "threshold_q15": 30,
       "left_child": 23,
       "right_child": 24
     },
     {
       "node_id": 23,
       "is_leaf": true,
-      "class_id": 2,
-      "class_label": "desbalanceamento"
+      "class_id": 1,
+      "class_label": "desalinhamento"
     },
     {
       "node_id": 24,
@@ -189,7 +189,7 @@
       "node_id": 25,
       "is_leaf": false,
       "feature_index": 56,
-      "threshold_q15": 20,
+      "threshold_q15": 22,
       "left_child": 26,
       "right_child": 29
     },
@@ -197,7 +197,7 @@
       "node_id": 26,
       "is_leaf": false,
       "feature_index": 9,
-      "threshold_q15": 100,
+      "threshold_q15": 86,
       "left_child": 27,
       "right_child": 28
     },
@@ -237,7 +237,7 @@
       "node_id": 32,
       "is_leaf": false,
       "feature_index": 102,
-      "threshold_q15": 671,
+      "threshold_q15": 510,
       "left_child": 33,
       "right_child": 34
     },

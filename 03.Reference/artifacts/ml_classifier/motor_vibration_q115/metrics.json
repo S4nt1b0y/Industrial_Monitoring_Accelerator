@@ -1,10 +1,10 @@
 {
   "dataset": {
-    "name": "motor_measurements_q15.parquet",
-    "path": "/home/s4nt1boy/Projects/Industrial_Monitoring_Accelerator/07.Datasets/processed/motor_measurements_q15.parquet",
+    "name": "motor_vibration_q115.parquet",
+    "path": "/home/s4nt1boy/Projects/Industrial_Monitoring_Accelerator/07.Datasets/processed/motor_vibration_q115.parquet",
     "q_format": "q1_15"
   },
-  "artifact_dir": "03.Reference/artifacts/ml_classifier",
+  "artifact_dir": "03.Reference/artifacts/ml_classifier/motor_vibration_q115",
   "class_map": {
     "0": "operacao_normal",
     "1": "desalinhamento",
@@ -64,34 +64,34 @@
   "cross_validation": {
     "folds": 5,
     "accuracy_scores": [
-      0.7873214285714286,
-      0.7839285714285714,
-      0.7942857142857143,
-      0.7886607142857143,
-      0.7882142857142858
+      0.7879464285714286,
+      0.7834821428571429,
+      0.7941071428571429,
+      0.788125,
+      0.7875892857142858
     ],
-    "accuracy_mean": 0.7884821428571429,
-    "accuracy_std": 0.0033426739876564445
+    "accuracy_mean": 0.78825,
+    "accuracy_std": 0.003393608939264077
   },
   "validation": {
-    "accuracy": 0.7901666666666667,
+    "accuracy": 0.7903333333333333,
     "confusion_matrix": [
       [
-        1990,
-        52,
-        958,
+        1987,
+        63,
+        950,
         0
       ],
       [
-        14,
-        2805,
-        181,
+        11,
+        2826,
+        163,
         0
       ],
       [
         1141,
-        171,
-        1688,
+        187,
+        1672,
         0
       ],
       [
@@ -103,21 +103,21 @@
     ],
     "classification_report": {
       "operacao_normal": {
-        "precision": 0.6327503974562798,
-        "recall": 0.6633333333333333,
-        "f1-score": 0.6476810414971521,
+        "precision": 0.6330041414463204,
+        "recall": 0.6623333333333333,
+        "f1-score": 0.6473366997882392,
         "support": 3000.0
       },
       "desalinhamento": {
-        "precision": 0.9260482007263123,
-        "recall": 0.935,
-        "f1-score": 0.9305025709072815,
+        "precision": 0.9184270393240169,
+        "recall": 0.942,
+        "f1-score": 0.9300641764028303,
         "support": 3000.0
       },
       "desbalanceamento": {
-        "precision": 0.5970993986558188,
-        "recall": 0.5626666666666666,
-        "f1-score": 0.5793718894800068,
+        "precision": 0.6003590664272891,
+        "recall": 0.5573333333333333,
+        "f1-score": 0.5780466724286949,
         "support": 3000.0
       },
       "desgaste_rolamento": {
@@ -126,40 +126,40 @@
         "f1-score": 0.9998333055509252,
         "support": 3000.0
       },
-      "accuracy": 0.7901666666666667,
+      "accuracy": 0.7903333333333333,
       "macro avg": {
-        "precision": 0.7889744992096028,
-        "recall": 0.7901666666666667,
-        "f1-score": 0.7893472018588413,
+        "precision": 0.7879475617994066,
+        "recall": 0.7903333333333333,
+        "f1-score": 0.7888202135426724,
         "support": 12000.0
       },
       "weighted avg": {
-        "precision": 0.7889744992096027,
-        "recall": 0.7901666666666667,
-        "f1-score": 0.7893472018588413,
+        "precision": 0.7879475617994067,
+        "recall": 0.7903333333333333,
+        "f1-score": 0.7888202135426724,
         "support": 12000.0
       }
     }
   },
   "test": {
-    "accuracy": 0.7851666666666667,
+    "accuracy": 0.78425,
     "confusion_matrix": [
       [
-        1957,
-        66,
-        977,
+        1954,
+        77,
+        969,
         0
       ],
       [
-        12,
-        2819,
-        169,
+        11,
+        2834,
+        155,
         0
       ],
       [
-        1177,
-        175,
-        1648,
+        1176,
+        199,
+        1625,
         0
       ],
       [
@@ -171,21 +171,21 @@
     ],
     "classification_report": {
       "operacao_normal": {
-        "precision": 0.6220597584233948,
-        "recall": 0.6523333333333333,
-        "f1-score": 0.6368369671330947,
+        "precision": 0.6220948742438713,
+        "recall": 0.6513333333333333,
+        "f1-score": 0.6363784399934864,
         "support": 3000.0
       },
       "desalinhamento": {
-        "precision": 0.9206401045068583,
-        "recall": 0.9396666666666667,
-        "f1-score": 0.930056087099967,
+        "precision": 0.9106683804627249,
+        "recall": 0.9446666666666667,
+        "f1-score": 0.9273560209424084,
         "support": 3000.0
       },
       "desbalanceamento": {
-        "precision": 0.5898353614889048,
-        "recall": 0.5493333333333333,
-        "f1-score": 0.5688643424231964,
+        "precision": 0.5911240451073118,
+        "recall": 0.5416666666666666,
+        "f1-score": 0.5653157070794921,
         "support": 3000.0
       },
       "desgaste_rolamento": {
@@ -194,17 +194,17 @@
         "f1-score": 0.9996665555185061,
         "support": 3000.0
       },
-      "accuracy": 0.7851666666666667,
+      "accuracy": 0.78425,
       "macro avg": {
-        "precision": 0.7831338061047894,
-        "recall": 0.7851666666666667,
-        "f1-score": 0.783855988043691,
+        "precision": 0.7809718249534771,
+        "recall": 0.78425,
+        "f1-score": 0.7821791808834733,
         "support": 12000.0
       },
       "weighted avg": {
-        "precision": 0.7831338061047893,
-        "recall": 0.7851666666666667,
-        "f1-score": 0.7838559880436912,
+        "precision": 0.7809718249534771,
+        "recall": 0.78425,
+        "f1-score": 0.7821791808834733,
         "support": 12000.0
       }
     }

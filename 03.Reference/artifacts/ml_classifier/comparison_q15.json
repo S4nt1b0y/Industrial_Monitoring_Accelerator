@@ -1,0 +1,28 @@
+{
+  "selection_rule": "best dataset is selected by highest test_accuracy, then validation_accuracy, then cv_accuracy_mean",
+  "best_dataset": "motor_measurements_q15.parquet",
+  "results": [
+    {
+      "dataset": "motor_measurements_q15.parquet",
+      "artifact_dir": "03.Reference/artifacts/ml_classifier/motor_measurements_q15",
+      "test_accuracy": 0.7851666666666667,
+      "validation_accuracy": 0.7901666666666667,
+      "cv_accuracy_mean": 0.7884821428571429,
+      "cv_accuracy_std": 0.0033426739876564445,
+      "tree_depth": 5,
+      "node_count": 35,
+      "feature_count": 132
+    },
+    {
+      "dataset": "motor_vibration_q115.parquet",
+      "artifact_dir": "03.Reference/artifacts/ml_classifier/motor_vibration_q115",
+      "test_accuracy": 0.78425,
+      "validation_accuracy": 0.7903333333333333,
+      "cv_accuracy_mean": 0.78825,
+      "cv_accuracy_std": 0.003393608939264077,
+      "tree_depth": 5,
+      "node_count": 35,
+      "feature_count": 132
+    }
+  ]
+}

@@ -12,6 +12,7 @@ from typing import Any
 
 import joblib
 import numpy as np
+import pyarrow as pa
 import pyarrow.parquet as pq
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
@@ -21,7 +22,8 @@ from fft import bit_reverse_order, fft_dif_radix2
 
 
 DEFAULT_DATASET = Path("07.Datasets/processed/motor_measurements_q15.parquet")
-DEFAULT_OUTPUT_DIR = Path("03.Reference/artifacts/ml_classifier")
+PROCESSED_DATASET_DIR = Path("07.Datasets/processed")
+DEFAULT_OUTPUT_ROOT = Path("03.Reference/artifacts/ml_classifier")
 VIBRATION_COLUMNS = [
     "aceleracao_x_mancal_a",
     "aceleracao_y_mancal_a",
@@ -38,6 +40,9 @@ ID_TO_LABEL = {value: key for key, value in LABEL_TO_ID.items()}
 Q15_SCALE = 32768.0
 Q15_MIN = -32768
 Q15_MAX = 32767
+FIRST_FEATURE_BIN = 0
+LAST_FEATURE_BIN = 32
+FEATURE_BIN_COUNT = LAST_FEATURE_BIN - FIRST_FEATURE_BIN + 1
 
 
 def parse_args() -> argparse.Namespace:
@@ -47,7 +52,25 @@ def parse_args() -> argparse.Namespace:
             "windows of the motor vibration dataset."
         )
     )
-    parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
+    parser.add_argument(
+        "--dataset",
+        type=Path,
+        default=DEFAULT_DATASET,
+        help=(
+            "Q1.15 Parquet dataset to train with. Accepts a file name from "
+            "07.Datasets/processed or a path inside that directory."
+        ),
+    )
+    parser.add_argument(
+        "--list-datasets",
+        action="store_true",
+        help="List valid Q1.15 Parquet datasets from 07.Datasets/processed and exit.",
+    )
+    parser.add_argument(
+        "--compare-q15-datasets",
+        action="store_true",
+        help="Train one classifier for each valid Q1.15 dataset and report the best result.",
+    )
     parser.add_argument("--window-size", type=int, default=64)
     parser.add_argument("--max-depth", type=int, default=5)
     parser.add_argument("--min-samples-leaf", type=int, default=16)
@@ -56,7 +79,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--val-size", type=float, default=0.15)
     parser.add_argument("--cv-folds", type=int, default=5)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help=(
+            "Artifact output directory. Defaults to "
+            "03.Reference/artifacts/ml_classifier/<dataset_stem>."
+        ),
+    )
     parser.add_argument(
         "--batch-size",
         type=int,
@@ -66,9 +97,76 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def q15_dataset_name(path: Path) -> bool:
+    name = path.name.lower()
+    return name.endswith(".parquet") and ("q15" in name or "q115" in name) and "q17" not in name
+
+
+def is_q15_parquet(path: Path) -> bool:
+    if not path.is_file() or not q15_dataset_name(path):
+        return False
+
+    try:
+        schema = pq.read_schema(path)
+    except Exception:
+        return False
+
+    required_columns = {"label", *VIBRATION_COLUMNS}
+    if not required_columns.issubset(set(schema.names)):
+        return False
+
+    return all(pa.types.is_int16(schema.field(column).type) for column in VIBRATION_COLUMNS)
+
+
+def valid_q15_datasets() -> list[Path]:
+    return [
+        path
+        for path in sorted(PROCESSED_DATASET_DIR.glob("*.parquet"))
+        if is_q15_parquet(path)
+    ]
+
+
+def resolve_dataset(path: Path) -> Path:
+    candidate = path
+    if not candidate.is_absolute() and candidate.parent == Path("."):
+        candidate = PROCESSED_DATASET_DIR / candidate
+    if candidate.suffix == "":
+        candidate = candidate.with_suffix(".parquet")
+
+    candidate = candidate.resolve()
+    processed_dir = PROCESSED_DATASET_DIR.resolve()
+    if processed_dir not in candidate.parents:
+        raise ValueError(f"Dataset must be inside {PROCESSED_DATASET_DIR}: {path}")
+    if not is_q15_parquet(candidate):
+        valid_names = ", ".join(dataset.name for dataset in valid_q15_datasets()) or "none"
+        raise ValueError(f"Invalid Q1.15 dataset: {path}. Valid options: {valid_names}")
+    return candidate
+
+
+def default_output_dir(dataset: Path) -> Path:
+    return DEFAULT_OUTPUT_ROOT / dataset.stem
+
+
+def list_datasets() -> None:
+    datasets = valid_q15_datasets()
+    if not datasets:
+        print(f"No valid Q1.15 Parquet datasets found in {PROCESSED_DATASET_DIR}")
+        return
+
+    print(f"Valid Q1.15 datasets in {PROCESSED_DATASET_DIR}:")
+    for dataset in datasets:
+        parquet_file = pq.ParquetFile(dataset)
+        print(f"- {dataset.name} ({parquet_file.metadata.num_rows} rows)")
+
+
 def require_power_of_two(value: int) -> None:
     if value <= 0 or value & (value - 1):
         raise ValueError(f"window-size must be a positive power of two, got {value}")
+    if value < FEATURE_BIN_COUNT:
+        raise ValueError(
+            f"window-size must be at least {FEATURE_BIN_COUNT} "
+            f"to use FFT bins {FIRST_FEATURE_BIN}..{LAST_FEATURE_BIN}, got {value}"
+        )
 
 
 def quantize_q15(values: np.ndarray) -> np.ndarray:
@@ -106,8 +204,12 @@ def windows_to_features(windows: np.ndarray, fft_matrix: np.ndarray) -> np.ndarr
     for channel_index in range(windows.shape[2]):
         channel_float = windows[:, :, channel_index].astype(np.float64) / Q15_SCALE
         fft_values = channel_float @ fft_matrix.T
-        real_q15 = quantize_q15(fft_values.real).astype(np.int32)
-        imag_q15 = quantize_q15(fft_values.imag).astype(np.int32)
+        real_q15 = quantize_q15(fft_values.real)[:, FIRST_FEATURE_BIN : LAST_FEATURE_BIN + 1].astype(
+            np.int32
+        )
+        imag_q15 = quantize_q15(fft_values.imag)[:, FIRST_FEATURE_BIN : LAST_FEATURE_BIN + 1].astype(
+            np.int32
+        )
         magnitude = np.abs(real_q15) + np.abs(imag_q15)
         feature_blocks.append(np.minimum(magnitude, Q15_MAX).astype(np.int16))
     return np.concatenate(feature_blocks, axis=1)
@@ -117,7 +219,9 @@ def window_to_features(window: np.ndarray) -> np.ndarray:
     channel_features = []
     for channel_index in range(window.shape[1]):
         real_q15, imag_q15 = fft_q15(window[:, channel_index])
-        magnitude = np.abs(real_q15.astype(np.int32)) + np.abs(imag_q15.astype(np.int32))
+        real_q15 = real_q15[FIRST_FEATURE_BIN : LAST_FEATURE_BIN + 1].astype(np.int32)
+        imag_q15 = imag_q15[FIRST_FEATURE_BIN : LAST_FEATURE_BIN + 1].astype(np.int32)
+        magnitude = np.abs(real_q15) + np.abs(imag_q15)
         channel_features.append(np.minimum(magnitude, Q15_MAX).astype(np.int16))
     return np.concatenate(channel_features)
 
@@ -215,7 +319,7 @@ def make_feature_map(window_size: int) -> list[dict[str, Any]]:
     rows = []
     feature_index = 0
     for channel in VIBRATION_COLUMNS:
-        for bin_index in range(window_size):
+        for bin_index in range(FIRST_FEATURE_BIN, LAST_FEATURE_BIN + 1):
             rows.append(
                 {
                     "feature_index": feature_index,
@@ -306,12 +410,14 @@ def split_data(
     return x_train, x_val, x_test, y_train, y_val, y_test
 
 
-def train(args: argparse.Namespace) -> None:
+def train(args: argparse.Namespace) -> dict[str, Any]:
     require_power_of_two(args.window_size)
-    args.output_dir.mkdir(parents=True, exist_ok=True)
+    dataset = resolve_dataset(args.dataset)
+    output_dir = args.output_dir if args.output_dir is not None else default_output_dir(dataset)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     features, labels = collect_balanced_windows(
-        args.dataset,
+        dataset,
         args.window_size,
         args.max_windows_per_class,
         args.batch_size,
@@ -338,9 +444,20 @@ def train(args: argparse.Namespace) -> None:
     test_pred = model.predict(x_test)
 
     metrics = {
+        "dataset": {
+            "name": dataset.name,
+            "path": str(dataset),
+            "q_format": "q1_15",
+        },
+        "artifact_dir": str(output_dir),
         "class_map": {str(class_id): label for class_id, label in ID_TO_LABEL.items()},
         "input_columns": VIBRATION_COLUMNS,
         "window_size": args.window_size,
+        "selected_fft_bins": {
+            "first": FIRST_FEATURE_BIN,
+            "last": LAST_FEATURE_BIN,
+            "count_per_channel": FEATURE_BIN_COUNT,
+        },
         "feature_count": int(features.shape[1]),
         "fft_q_format": "q1_15",
         "fft_scale": "fft_output_divided_by_window_size_before_q15_quantization",
@@ -391,22 +508,118 @@ def train(args: argparse.Namespace) -> None:
         },
     }
 
-    joblib.dump(model, args.output_dir / "model.joblib")
-    (args.output_dir / "metrics.json").write_text(
+    joblib.dump(model, output_dir / "model.joblib")
+    (output_dir / "metrics.json").write_text(
         json.dumps(metrics, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
-    export_tree_q15(model, args.output_dir / "tree_q15.json")
-    export_feature_map(args.output_dir / "feature_map.csv", make_feature_map(args.window_size))
+    export_tree_q15(model, output_dir / "tree_q15.json")
+    export_feature_map(output_dir / "feature_map.csv", make_feature_map(args.window_size))
 
     print(f"Collected balanced windows: {class_counts(labels)}")
+    print(f"Dataset: {dataset.name}")
     print(f"Validation accuracy: {metrics['validation']['accuracy']:.4f}")
     print(f"Test accuracy: {metrics['test']['accuracy']:.4f}")
-    print(f"Wrote artifacts to {args.output_dir}")
+    print(f"Wrote artifacts to {output_dir}")
+    return metrics
+
+
+def write_comparison_summary(rows: list[dict[str, Any]], output_root: Path) -> None:
+    output_root.mkdir(parents=True, exist_ok=True)
+    best = max(
+        rows,
+        key=lambda row: (
+            row["test_accuracy"],
+            row["validation_accuracy"],
+            row["cv_accuracy_mean"],
+        ),
+    )
+    payload = {
+        "selection_rule": (
+            "best dataset is selected by highest test_accuracy, then "
+            "validation_accuracy, then cv_accuracy_mean"
+        ),
+        "best_dataset": best["dataset"],
+        "results": rows,
+    }
+    (output_root / "comparison_q15.json").write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
+    with (output_root / "comparison_q15.csv").open("w", newline="", encoding="utf-8") as handle:
+        fieldnames = [
+            "dataset",
+            "artifact_dir",
+            "test_accuracy",
+            "validation_accuracy",
+            "cv_accuracy_mean",
+            "cv_accuracy_std",
+            "tree_depth",
+            "node_count",
+            "feature_count",
+        ]
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def compare_q15_datasets(args: argparse.Namespace) -> None:
+    datasets = valid_q15_datasets()
+    if not datasets:
+        raise ValueError(f"No valid Q1.15 Parquet datasets found in {PROCESSED_DATASET_DIR}")
+
+    output_root = args.output_dir if args.output_dir is not None else DEFAULT_OUTPUT_ROOT
+    rows = []
+    for dataset in datasets:
+        print(f"\n=== Training {dataset.name} ===")
+        dataset_args = argparse.Namespace(**vars(args))
+        dataset_args.dataset = dataset
+        dataset_args.output_dir = output_root / dataset.stem
+        metrics = train(dataset_args)
+        rows.append(
+            {
+                "dataset": dataset.name,
+                "artifact_dir": metrics["artifact_dir"],
+                "test_accuracy": metrics["test"]["accuracy"],
+                "validation_accuracy": metrics["validation"]["accuracy"],
+                "cv_accuracy_mean": metrics["cross_validation"]["accuracy_mean"],
+                "cv_accuracy_std": metrics["cross_validation"]["accuracy_std"],
+                "tree_depth": metrics["model"]["depth"],
+                "node_count": metrics["model"]["node_count"],
+                "feature_count": metrics["feature_count"],
+            }
+        )
+
+    write_comparison_summary(rows, output_root)
+    best = max(
+        rows,
+        key=lambda row: (
+            row["test_accuracy"],
+            row["validation_accuracy"],
+            row["cv_accuracy_mean"],
+        ),
+    )
+    print("\n=== Q1.15 comparison ===")
+    for row in rows:
+        print(
+            f"{row['dataset']}: test={row['test_accuracy']:.4f}, "
+            f"validation={row['validation_accuracy']:.4f}, "
+            f"cv_mean={row['cv_accuracy_mean']:.4f}"
+        )
+    print(f"Best dataset: {best['dataset']} (test={best['test_accuracy']:.4f})")
+    print(f"Wrote comparison to {output_root / 'comparison_q15.json'}")
 
 
 def main() -> None:
-    train(parse_args())
+    args = parse_args()
+    if args.list_datasets:
+        list_datasets()
+        return
+    if args.compare_q15_datasets:
+        compare_q15_datasets(args)
+        return
+    train(args)
 
 
 if __name__ == "__main__":

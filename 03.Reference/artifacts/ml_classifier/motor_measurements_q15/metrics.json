@@ -4,7 +4,7 @@
     "path": "/home/s4nt1boy/Projects/Industrial_Monitoring_Accelerator/07.Datasets/processed/motor_measurements_q15.parquet",
     "q_format": "q1_15"
   },
-  "artifact_dir": "03.Reference/artifacts/ml_classifier",
+  "artifact_dir": "03.Reference/artifacts/ml_classifier/motor_measurements_q15",
   "class_map": {
     "0": "operacao_normal",
     "1": "desalinhamento",
