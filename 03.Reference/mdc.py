@@ -58,77 +58,70 @@ def processar_tres_picos(pico1, pico2, pico3, fs_hz, min_k, n_fft=64):
 
 
 
-# Exemplo
+if __name__ == "__main__":
+    # Exemplo
+    FS_HZ = 6400
+    MIN_K = 2
+    N_FFT = 64
 
-
-FS_HZ = 6400
-MIN_K = 2
-N_FFT = 64
-
-k0, f0, result_valid = processar_tres_picos(
-    12, 18, 30,
-    fs_hz=FS_HZ,
-    min_k=MIN_K,
-    n_fft=N_FFT
-)
-
-print("Exemplo:")
-print("k0 =", k0)
-print("f0 =", f0, "Hz")
-print("result_valid =", result_valid)
-print("--------------------------")
-
-
-
-# Casos de teste
-# Formato:
-# (pico1, pico2, pico3, k0_esperado, f0_esperado, valid_esperado)
-
-
-testes = [
-    (12, 18, 30,  6,  600, True),
-    (8,  16, 24,  8,  800, True),
-    (5,  10, 20,  5,  500, True),
-    (0,  18, 30,  0,    0, False),
-    (12, 12, 12, 12, 1200, True),
-    (12, 17, 31,  0,    0, False),
-]
-
-
-for pico1, pico2, pico3, k0_esperado, f0_esperado, valid_esperado in testes:
-
-    k0_obtido, f0_obtido, valid_obtido = processar_tres_picos(
-        pico1,
-        pico2,
-        pico3,
+    k0, f0, result_valid = processar_tres_picos(
+        12, 18, 30,
         fs_hz=FS_HZ,
         min_k=MIN_K,
         n_fft=N_FFT
     )
 
-    print("Entradas:", pico1, pico2, pico3)
-
-    print(
-        "Esperado:",
-        "k0 =", k0_esperado,
-        "| f0 =", f0_esperado,
-        "| valid =", valid_esperado
-    )
-
-    print(
-        "Obtido:  ",
-        "k0 =", k0_obtido,
-        "| f0 =", f0_obtido,
-        "| valid =", valid_obtido
-    )
-
-    if (
-        k0_obtido == k0_esperado
-        and f0_obtido == f0_esperado
-        and valid_obtido == valid_esperado
-    ):
-        print("Teste aprovado!")
-    else:
-        print("Teste reprovado!")
-
+    print("Exemplo:")
+    print("k0 =", k0)
+    print("f0 =", f0, "Hz")
+    print("result_valid =", result_valid)
     print("--------------------------")
+
+    # Casos de teste
+    # Formato:
+    # (pico1, pico2, pico3, k0_esperado, f0_esperado, valid_esperado)
+    testes = [
+        (12, 18, 30,  6,  600, True),
+        (8,  16, 24,  8,  800, True),
+        (5,  10, 20,  5,  500, True),
+        (0,  18, 30,  0,    0, False),
+        (12, 12, 12, 12, 1200, True),
+        (12, 17, 31,  0,    0, False),
+    ]
+
+    for pico1, pico2, pico3, k0_esperado, f0_esperado, valid_esperado in testes:
+        k0_obtido, f0_obtido, valid_obtido = processar_tres_picos(
+            pico1,
+            pico2,
+            pico3,
+            fs_hz=FS_HZ,
+            min_k=MIN_K,
+            n_fft=N_FFT
+        )
+
+        print("Entradas:", pico1, pico2, pico3)
+
+        print(
+            "Esperado:",
+            "k0 =", k0_esperado,
+            "| f0 =", f0_esperado,
+            "| valid =", valid_esperado
+        )
+
+        print(
+            "Obtido:  ",
+            "k0 =", k0_obtido,
+            "| f0 =", f0_obtido,
+            "| valid =", valid_obtido
+        )
+
+        if (
+            k0_obtido == k0_esperado
+            and f0_obtido == f0_esperado
+            and valid_obtido == valid_esperado
+        ):
+            print("Teste aprovado!")
+        else:
+            print("Teste reprovado!")
+
+        print("--------------------------")
