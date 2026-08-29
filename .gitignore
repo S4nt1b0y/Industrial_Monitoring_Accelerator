@@ -68,6 +68,7 @@ svlog*.vlog
 # Bibliotecas compiladas (se você definiu nomes personalizados)
 *.bak
 *.sim
+!/05.Sim/
 
 # --- Python ---
 # Cache de compilação do Python 3
