@@ -129,6 +129,7 @@ class MLClassifier:
 
         cv_scores = self._cross_validation_scores(model, x_train, y_train, cv_folds)
         model.fit(x_train, y_train)
+        train_pred = model.predict(x_train)
         val_pred = model.predict(x_val)
         test_pred = model.predict(x_test)
 
@@ -163,6 +164,7 @@ class MLClassifier:
                 "accuracy_mean": float(np.mean(cv_scores)) if len(cv_scores) else None,
                 "accuracy_std": float(np.std(cv_scores)) if len(cv_scores) else None,
             },
+            "train": self._evaluation(y_train, train_pred),
             "validation": self._evaluation(y_val, val_pred),
             "test": self._evaluation(y_test, test_pred),
         }
