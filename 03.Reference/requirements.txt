@@ -1,0 +1,8 @@
+# Installs this package (editable) plus its dev extras (pytest) -- the
+# actual dependency list (numpy, pandas, scipy, duckdb, pyarrow,
+# matplotlib, nptdms) lives in pyproject.toml, not duplicated here.
+-e .[dev]
+
+# Only needed to open/run notebooks/analise_smma.ipynb.
+jupyter
+ipykernel

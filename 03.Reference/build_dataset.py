@@ -17,12 +17,18 @@ import pyarrow.parquet as pq
 from nptdms import TdmsFile
 from scipy.io import loadmat
 
+from dataset.paths import DATASET_DIR, DATASET_PARQUET, RAW_DATASET_DIR, SCALE_REPORT_CSV, SOURCE_REPORT_CSV
 
-DEFAULT_INPUT_DIR = Path("07.Datasets")
-DEFAULT_OUTPUT = Path("07.Datasets/processed/motor_measurements_q15.parquet")
-DEFAULT_REPORT = Path("07.Datasets/processed/dataset_report.csv")
-DEFAULT_SCALE_REPORT = Path("07.Datasets/processed/dataset_scale_report.csv")
-DEFAULT_PREVIEW = Path("07.Datasets/processed/dataset_preview.csv")
+# Absolute, derived from dataset/paths.py -- not relative to the caller's
+# cwd, since this script (like every tools/*.py one) is documented to run
+# from 03.Reference but is also invoked as a plain script (python
+# build_dataset.py), which a relative default would get wrong from
+# anywhere else.
+DEFAULT_INPUT_DIR = RAW_DATASET_DIR
+DEFAULT_OUTPUT = DATASET_PARQUET
+DEFAULT_REPORT = SOURCE_REPORT_CSV
+DEFAULT_SCALE_REPORT = SCALE_REPORT_CSV
+DEFAULT_PREVIEW = DATASET_DIR / "dataset_preview.csv"
 
 LABELS = {
     "Normal": "operacao_normal",
@@ -65,6 +71,7 @@ class SourceMetadata:
     source_id: str
     label: str
     fault_detail: str
+    load_nm: int
 
 
 @dataclass
@@ -178,6 +185,7 @@ def parse_source_metadata(stem: str) -> SourceMetadata:
     if not match:
         raise ValueError(f"Cannot parse source name: {stem}")
 
+    load_nm = int(match.group("load"))
     fault = match.group("fault")
     for token, label in LABELS.items():
         if fault.startswith(token):
@@ -189,7 +197,7 @@ def parse_source_metadata(stem: str) -> SourceMetadata:
                 detail = "misalign_" + fault.split("_", 1)[1]
             else:
                 detail = fault
-            return SourceMetadata(stem, label, detail)
+            return SourceMetadata(stem, label, detail, load_nm)
 
     raise ValueError(f"Cannot infer label from source name: {stem}")
 
@@ -262,7 +270,11 @@ def discover_tdms_columns(paths: Iterable[Path]) -> list[str]:
 
 
 def pair_sources(input_dir: Path) -> list[tuple[str, Path, Path]]:
-    mat_files = {path.stem: path for path in input_dir.glob("*.mat")}
+    # The raw vibration files spell the 2Nm unbalance sources "Unbalalnce"
+    # (typo in the original dataset), while the current/temperature files
+    # spell them correctly "Unbalance" -- normalized here on the vibration
+    # stem before pairing.
+    mat_files = {path.stem.replace("Unbalalnce", "Unbalance"): path for path in input_dir.glob("*.mat")}
     tdms_files = {path.stem: path for path in input_dir.glob("*.tdms")}
 
     missing_mat = sorted(set(tdms_files) - set(mat_files))
@@ -293,6 +305,7 @@ def make_float_chunk_frame(
         "time_s": time_s,
         "label": metadata.label,
         "fault_detail": metadata.fault_detail,
+        "load_nm": metadata.load_nm,
     }
 
     vibration = mat_signal.values[start:stop]
@@ -335,7 +348,7 @@ def update_max_abs(max_abs: dict[str, float], frame: pd.DataFrame) -> None:
 
 
 def quantize_q15(frame: pd.DataFrame, max_abs: dict[str, float]) -> pd.DataFrame:
-    q15_frame = frame[["label", "fault_detail"]].copy()
+    q15_frame = frame[["label", "fault_detail", "load_nm"]].copy()
     for column in MEASUREMENT_COLUMNS:
         values = frame[column].to_numpy(dtype=np.float64, copy=False)
         scale = max_abs[column] if max_abs[column] > 0.0 else 1.0
@@ -344,11 +357,24 @@ def quantize_q15(frame: pd.DataFrame, max_abs: dict[str, float]) -> pd.DataFrame
         quantized = np.nan_to_num(quantized, nan=0.0, posinf=32767.0, neginf=-32768.0)
         q15_frame[column] = np.clip(quantized, -32768, 32767).astype(np.int16)
 
+    for column in TDMS_VALIDITY_COLUMNS:
+        q15_frame[column] = frame[column].to_numpy(dtype=bool, copy=False)
+
     return q15_frame
 
 
-def drop_missing_samples(frame: pd.DataFrame) -> pd.DataFrame:
-    valid_rows = frame[TDMS_VALIDITY_COLUMNS].all(axis=1)
+def drop_missing_samples(frame: pd.DataFrame, tdms_channels: list[TdmsChannel]) -> pd.DataFrame:
+    """Drop rows only for channels this source actually recorded.
+
+    A source that never logged a given channel (e.g. BPFO runs only wired
+    phase-U current) must not have every row rejected just because that
+    channel's validity column is permanently False; only interpolation
+    gaps in channels the source does have should drop rows.
+    """
+    present_validity_columns = [f"{channel.column_name}_valida" for channel in tdms_channels]
+    if not present_validity_columns:
+        return frame.copy()
+    valid_rows = frame[present_validity_columns].all(axis=1)
     return frame.loc[valid_rows].copy()
 
 
@@ -457,7 +483,7 @@ def build_dataset(args: argparse.Namespace) -> None:
                 start,
                 stop,
             )
-            frame = drop_missing_samples(frame)
+            frame = drop_missing_samples(frame, tdms_channels)
             update_max_abs(max_abs, frame)
 
     write_scale_report(args.scale_report, max_abs)
@@ -485,7 +511,7 @@ def build_dataset(args: argparse.Namespace) -> None:
                     start,
                     stop,
                 )
-                frame = drop_missing_samples(frame)
+                frame = drop_missing_samples(frame, tdms_channels)
                 if frame.empty:
                     continue
 
