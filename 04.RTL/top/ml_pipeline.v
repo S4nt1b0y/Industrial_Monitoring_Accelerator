@@ -122,7 +122,7 @@ function [DATA_WIDTH-1:0] saturate_f0;
     end
 endfunction
 
-// PENSO QUE DAQUI ATÉ LINA 236 mais ou menos será o modulo dedicado de obtenção de 
+// PENSO QUE DAQUI ATÉ LINA 225 mais ou menos será o modulo dedicado de obtenção de 
 task update_top3;
     input [DATA_WIDTH-1:0] mag;
     input [M-1:0] idx;
