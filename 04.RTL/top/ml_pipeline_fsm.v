@@ -7,19 +7,16 @@ module ml_pipeline_fsm (
     input  wire       rst_n,
     input  wire       valid_i,
     input  wire       fft_done_i,
-    input  wire       mdc_pico_ready_i,
     input  wire       mdc_done_i,
     input  wire       classifier_valid_i,
     output wire       ready_o,
     output reg        capture_o,
     output reg        fft_start_o,
     output reg        mdc_start_o,
-    output reg        pico_valid_o,
     output reg        store_fft_o,
     output reg        store_mdc_o,
     output reg        classifier_start_o,
     output reg [1:0]  channel_sel_o,
-    output reg [1:0]  pico_sel_o,
     output reg [2:0]  stage_o
 );
 
@@ -38,12 +35,10 @@ localparam [1:0] CH_Y_B = 2'd3;
 localparam [3:0] S_IDLE          = 4'd0;
 localparam [3:0] S_START_FFT     = 4'd1;
 localparam [3:0] S_WAIT_FFT      = 4'd2;
-localparam [3:0] S_SEND_PICO_0   = 4'd3;
-localparam [3:0] S_SEND_PICO_1   = 4'd4;
-localparam [3:0] S_SEND_PICO_2   = 4'd5;
-localparam [3:0] S_WAIT_MDC      = 4'd6;
-localparam [3:0] S_CLASSIFY      = 4'd7;
-localparam [3:0] S_WAIT_CLASSIFY = 4'd8;
+localparam [3:0] S_START_MDC     = 4'd3;
+localparam [3:0] S_WAIT_MDC      = 4'd4;
+localparam [3:0] S_CLASSIFY      = 4'd5;
+localparam [3:0] S_WAIT_CLASSIFY = 4'd6;
 
 reg [3:0] state;
 reg [3:0] state_next;
@@ -55,11 +50,9 @@ always @(*) begin
     capture_o          = 1'b0;
     fft_start_o        = 1'b0;
     mdc_start_o        = 1'b0;
-    pico_valid_o       = 1'b0;
     store_fft_o        = 1'b0;
     store_mdc_o        = 1'b0;
     classifier_start_o = 1'b0;
-    pico_sel_o         = 2'd0;
     state_next         = state;
     channel_sel_next   = channel_sel_o;
 
@@ -80,33 +73,13 @@ always @(*) begin
         S_WAIT_FFT: begin
             if (fft_done_i) begin
                 store_fft_o = 1'b1;
-                mdc_start_o = 1'b1;
-                state_next  = S_SEND_PICO_0;
+                state_next  = S_START_MDC;
             end
         end
 
-        S_SEND_PICO_0: begin
-            pico_sel_o   = 2'd0;
-            pico_valid_o = mdc_pico_ready_i;
-            if (mdc_pico_ready_i) begin
-                state_next = S_SEND_PICO_1;
-            end
-        end
-
-        S_SEND_PICO_1: begin
-            pico_sel_o   = 2'd1;
-            pico_valid_o = mdc_pico_ready_i;
-            if (mdc_pico_ready_i) begin
-                state_next = S_SEND_PICO_2;
-            end
-        end
-
-        S_SEND_PICO_2: begin
-            pico_sel_o   = 2'd2;
-            pico_valid_o = mdc_pico_ready_i;
-            if (mdc_pico_ready_i) begin
-                state_next = S_WAIT_MDC;
-            end
+        S_START_MDC: begin
+            mdc_start_o = 1'b1;
+            state_next  = S_WAIT_MDC;
         end
 
         S_WAIT_MDC: begin

@@ -30,40 +30,38 @@ def mdc(a, b):
     return a
 
 
-def processar_tres_picos(pico1, pico2, pico3, fs_hz, min_k, n_fft=64):
+def processar_tres_picos(picos, fs_hz, min_k, n_fft=64):
     """
-    Modelo em Python equivalente ao comportamento funcional do mdc_corrigido.v.
+    Modelo em Python equivalente ao comportamento funcional do mdc_tres_picos.v.
 
     Fluxo:
-      1. Rejeita a janela se algum pico for zero.
-      2. m = MDC(pico1, pico2)
-      3. k = MDC(m, pico3)
-      4. Rejeita se k < min_k
-      5. k0 = k
-      6. f0 = (k0 * fs_hz) // n_fft
+      1. Recebe os três picos em paralelo.
+      2. Rejeita a janela se algum pico for zero.
+      3. m = MDC(pico1, pico2)
+      4. k = MDC(m, pico3)
+      5. Rejeita se k < min_k
+      6. k0 = k
+      7. f0 = (k0 * fs_hz) // n_fft
 
     Retorna:
       k0, f0, result_valid
     """
+    picos = np.asarray(picos)
+    if picos.shape != (3,):
+        raise ValueError(f"picos must have shape (3,), got {picos.shape}")
 
-    # Mesma validação do estado CHECK do Verilog
+    pico1, pico2, pico3 = (int(picos[0]), int(picos[1]), int(picos[2]))
+
     if pico1 == 0 or pico2 == 0 or pico3 == 0:
         return 0, 0, False
 
-    # Primeiro MDC: m = MDC(pico1, pico2)
     m = mdc(pico1, pico2)
-
-    # Segundo MDC: k = MDC(m, pico3)
     k = mdc(m, pico3)
 
-    # Mesma validação do estado VALIDATE do Verilog
     if k < min_k:
         return 0, 0, False
 
-    # Resultado válido
     k0 = k
-
-    # Em hardware a divisão é inteira
     f0 = (k0 * fs_hz) // n_fft
 
     return k0, f0, True
@@ -88,9 +86,7 @@ def mdc_features_from_magnitude(magnitude_bins, data_width, fs_hz, min_k, n_fft=
     max_value = max_feature_value(data_width)
     peak_bins = three_largest_peak_bins(magnitude_bins)
     _, f0, result_valid = processar_tres_picos(
-        int(peak_bins[0]),
-        int(peak_bins[1]),
-        int(peak_bins[2]),
+        peak_bins,
         fs_hz=fs_hz,
         min_k=min_k,
         n_fft=n_fft,
@@ -140,7 +136,7 @@ if __name__ == "__main__":
     N_FFT = 64
 
     k0, f0, result_valid = processar_tres_picos(
-        12, 18, 30,
+        [12, 18, 30],
         fs_hz=FS_HZ,
         min_k=MIN_K,
         n_fft=N_FFT
@@ -166,9 +162,7 @@ if __name__ == "__main__":
 
     for pico1, pico2, pico3, k0_esperado, f0_esperado, valid_esperado in testes:
         k0_obtido, f0_obtido, valid_obtido = processar_tres_picos(
-            pico1,
-            pico2,
-            pico3,
+            [pico1, pico2, pico3],
             fs_hz=FS_HZ,
             min_k=MIN_K,
             n_fft=N_FFT

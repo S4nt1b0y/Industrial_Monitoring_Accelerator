@@ -42,8 +42,6 @@ wire       fsm_capture;
 wire       fft_start;
 wire       fft_done;
 wire       mdc_start;
-wire       mdc_pico_valid;
-wire       mdc_pico_ready;
 wire       mdc_done;
 wire       mdc_result_valid;
 wire       store_fft;
@@ -51,7 +49,6 @@ wire       store_mdc;
 wire       classifier_start;
 wire       classifier_valid;
 wire [1:0] channel_sel;
-wire [1:0] pico_sel;
 wire [2:0] stage;
 
 reg signed [N*DATA_WIDTH-1:0]  fft_in_re;
@@ -62,7 +59,6 @@ wire signed [N*DATA_WIDTH-1:0] fft_out_im;
 reg [M-1:0]  peak_0;
 reg [M-1:0]  peak_1;
 reg [M-1:0]  peak_2;
-reg [M-1:0]  mdc_pico_in;
 wire [M-1:0] mdc_k0;
 wire [31:0]  mdc_f0;
 
@@ -85,15 +81,6 @@ always @(*) begin
         CH_Y_A:  fft_in_re = acc_y_a_reg;
         CH_Y_B:  fft_in_re = acc_y_b_reg;
         default: fft_in_re = {N*DATA_WIDTH{1'b0}};
-    endcase
-end
-
-always @(*) begin
-    case (pico_sel)
-        2'd0:    mdc_pico_in = peak_0;
-        2'd1:    mdc_pico_in = peak_1;
-        2'd2:    mdc_pico_in = peak_2;
-        default: mdc_pico_in = {M{1'b0}};
     endcase
 end
 
@@ -241,19 +228,16 @@ ml_pipeline_fsm u_fsm (
     .rst_n(rst_n),
     .valid_i(valid_i),
     .fft_done_i(fft_done),
-    .mdc_pico_ready_i(mdc_pico_ready),
     .mdc_done_i(mdc_done),
     .classifier_valid_i(classifier_valid),
     .ready_o(ready_o),
     .capture_o(fsm_capture),
     .fft_start_o(fft_start),
     .mdc_start_o(mdc_start),
-    .pico_valid_o(mdc_pico_valid),
     .store_fft_o(store_fft),
     .store_mdc_o(store_mdc),
     .classifier_start_o(classifier_start),
     .channel_sel_o(channel_sel),
-    .pico_sel_o(pico_sel),
     .stage_o(stage)
 );
 
@@ -281,9 +265,9 @@ mdc_tres_picos #(
     .clk(clk),
     .reset(~rst_n),
     .start(mdc_start),
-    .pico_in(mdc_pico_in),
-    .pico_valid(mdc_pico_valid),
-    .pico_ready(mdc_pico_ready),
+    .pico1_i(peak_0),
+    .pico2_i(peak_1),
+    .pico3_i(peak_2),
     .fs_hz(FS_HZ),
     .min_k(MIN_K[M-1:0]),
     .k0(mdc_k0),
