@@ -4,7 +4,7 @@
  * matrix_inv, LMS, ml_classifier, cnn, global control and output interface.
  * Status: not implemented yet.
  */
-module top 
+module ml_pipeline 
 #(
     DATA_WIDTH=16
 ),(
@@ -17,94 +17,6 @@ module top
     input  wire valid_i,
     output reg [1:0] class_o 
 );
-
-
-
-
-    //==================================================
-    // INSTÂNCIA DO LMS
-    //==================================================
-
-    lms_top #(
-        .DATA_W(DATA_W),
-        .TAPS(TAPS),
-        .FRAC_W(15),
-        .MU_SHIFT(6)
-    ) lms_acc_x_a (
-        .clk(clk),
-        .reset(reset),
-        .start(start),
-
-        .x_in(x_in),
-        .d_in(d_in),
-
-        .e_out(e_out),
-        .y_out(y_out),
-
-        .valid(valid),
-        .busy(busy)
-    );
-
-    lms_top #(
-        .DATA_W(DATA_W),
-        .TAPS(TAPS),
-        .FRAC_W(15),
-        .MU_SHIFT(6)
-    ) lms_acc_y_a (
-        .clk(clk),
-        .reset(reset),
-        .start(start),
-
-        .x_in(x_in),
-        .d_in(d_in),
-
-        .e_out(e_out),
-        .y_out(y_out),
-
-        .valid(valid),
-        .busy(busy)
-    );
-
-
-    lms_top #(
-        .DATA_W(DATA_W),
-        .TAPS(TAPS),
-        .FRAC_W(15),
-        .MU_SHIFT(6)
-        ) lms_acc_x_b (
-        .clk(clk),
-        .reset(reset),
-        .start(start),
-
-        .x_in(x_in),
-        .d_in(d_in),
-
-        .e_out(e_out),
-        .y_out(y_out),
-
-        .valid(valid),
-        .busy(busy)
-    );
-
-    lms_top #(
-        .DATA_W(DATA_W),
-        .TAPS(TAPS),
-        .FRAC_W(15),
-        .MU_SHIFT(6)
-    ) lms_acc_y_b (
-        .clk(clk),
-        .reset(reset),
-        .start(start),
-
-        .x_in(x_in),
-        .d_in(d_in),
-
-        .e_out(e_out),
-        .y_out(y_out),
-
-        .valid(valid),
-        .busy(busy)
-    );
 
     ftu_dif #(
         .N(N),
@@ -215,9 +127,6 @@ module top
         .valid_o(valid_o),
         .class_o(class_o)
     );
-
-
-    cnn #() cnn_i ();
 
     class_o = swith ? cnn : ml;
     
