@@ -5,7 +5,7 @@ module tb_ml_classifier;
 reg          clk;
 reg          rst_n;
 reg          valid_i;
-reg [2111:0] features_i;
+reg [2239:0] features_i;
 wire         valid_o;
 wire [1:0]   class_o;
 
@@ -54,7 +54,7 @@ task run_case;
 
         @(negedge clk);
         valid_i = 1'b0;
-        features_i = {2112{1'b0}};
+        features_i = {2240{1'b0}};
         @(posedge clk);
         #1;
     end
@@ -64,7 +64,7 @@ initial begin
     clk = 1'b0;
     rst_n = 1'b0;
     valid_i = 1'b0;
-    features_i = {2112{1'b0}};
+    features_i = {2240{1'b0}};
     failures = 0;
 
     repeat (2) @(posedge clk);
@@ -74,24 +74,25 @@ initial begin
     set_feature(102, 16'd0);
     set_feature(122, 16'd0);
     set_feature(9,   16'd0);
-    set_feature(15,  16'd0);
     run_case("normal", 2'd0);
 
-    /* Node path: 0L, 1L, 2R, 10L, 11R -> class 1 */
+    /* Node path: 0L, 1R, 17L, 18L, 19R -> class 1 */
     set_feature(102, 16'd0);
     set_feature(122, 16'd0);
-    set_feature(9,   16'd141);
+    set_feature(9,   16'd87);
+    set_feature(41,  16'd55);
     run_case("misalignment", 2'd1);
 
     /* Node path: 0L, 1L, 2L, 3R, 7L -> class 2 */
     set_feature(102, 16'd0);
-    set_feature(122, 16'd1287);
+    set_feature(122, 16'd1267);
     set_feature(9,   16'd0);
-    set_feature(8,   16'd68);
+    set_feature(8,   16'd74);
     run_case("unbalance", 2'd2);
 
     /* Node path: 0R, 32L -> class 3 */
-    set_feature(102, 16'd569);
+    set_feature(102, 16'd667);
+    set_feature(36,  16'd0);
     run_case("bearing_wear", 2'd3);
 
     if (failures == 0) begin
