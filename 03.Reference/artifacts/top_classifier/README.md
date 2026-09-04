@@ -1,12 +1,13 @@
-# Top Classifier LMS + FFT + MDC + ML
+# Top Classifier FFT + MDC + ML
 
-Este diretório documenta o uso do modelo de referência `03.Reference/top_classifier.py`.
+Este diretório documenta o fluxo de referência `03.Reference/ml_pipeline.py`
+avaliado por `03.Reference/evaluate_datasets.py`.
 
 O fluxo implementado é:
 
 ```text
-dataset Q1.15
-  -> LMS por canal com referencia atrasada em 1 amostra
+dataset Q1.7 ou Q1.15
+  -> LMS desligado
   -> FFT de 64 pontos por canal
   -> bins 0..32
   -> 3 maiores picos por canal
@@ -16,13 +17,17 @@ dataset Q1.15
 
 ## Entrada
 
-Por padrão, o script usa:
+O avaliador varre os Parquets processados em:
 
 ```text
-07.Datasets/processed/motor_measurements_q15.parquet
+07.Datasets/processed/*.parquet
 ```
 
-Esse dataset foi escolhido porque teve a melhor acurácia de teste na comparação Q1.15 já existente em `03.Reference/artifacts/ml_classifier/comparison_q15.json`.
+O formato é inferido pelo tipo dos quatro canais de vibração: `int8` para Q1.7
+e `int16` para Q1.15.
+
+Na API direta de `MLPipeline`, o padrão é `data_width=8`, `lms=False` e
+`mdc=True`.
 
 Os canais usados são:
 
@@ -37,47 +42,38 @@ aceleracao_y_mancal_b
 
 Para cada janela de 64 amostras:
 
-- O LMS é aplicado independentemente em cada canal.
-- A referência do LMS é o mesmo canal atrasado em 1 amostra.
-- A saída usada na FFT é `y`, ou seja, a saída filtrada do LMS.
+- O LMS fica desligado no fluxo oficial.
 - A FFT usa os bins `0..32`.
-- A magnitude de cada bin é calculada como:
+- A magnitude de cada bin é saturada para o formato selecionado:
 
 ```text
-feature = min(32767, abs(real_q15) + abs(imag_q15))
+Q1.7:  feature = min(127, abs(real_q17) + abs(imag_q17))
+Q1.15: feature = min(32767, abs(real_q15) + abs(imag_q15))
 ```
 
-O vetor final tem 144 features:
+O vetor final tem 140 features:
 
 ```text
 4 canais x 33 bins FFT = 132 features
-4 canais x 3 features MDC = 12 features
-total = 144 features
+4 canais x 2 features MDC = 8 features
+total = 140 features
 ```
 
 As features MDC por canal são:
 
 ```text
-mdc_k0
-mdc_f0_hz
-mdc_result_valid
+f0
+valid
 ```
 
 ## Comandos
 
 Execute os comandos a partir da raiz do projeto.
 
-Listar datasets Q1.15 válidos:
-
-```bash
-.venv/bin/python 03.Reference/top_classifier.py --list-datasets
-```
-
 Rodar um teste rápido com 200 janelas por classe:
 
 ```bash
-.venv/bin/python 03.Reference/top_classifier.py \
-  --dataset motor_measurements_q15.parquet \
+.venv/bin/python 03.Reference/evaluate_datasets.py \
   --max-windows-per-class 200 \
   --cv-folds 3 \
   --output-dir /tmp/top_classifier_smoke_200
@@ -86,28 +82,20 @@ Rodar um teste rápido com 200 janelas por classe:
 Rodar o treinamento completo padrão:
 
 ```bash
-.venv/bin/python 03.Reference/top_classifier.py
+.venv/bin/python 03.Reference/evaluate_datasets.py
 ```
 
 Rodar o treinamento completo escolhendo explicitamente o diretório de saída:
 
 ```bash
-.venv/bin/python 03.Reference/top_classifier.py \
-  --dataset motor_measurements_q15.parquet \
-  --output-dir 03.Reference/artifacts/top_classifier/motor_measurements_q15
-```
-
-Alterar o atraso da referência do LMS:
-
-```bash
-.venv/bin/python 03.Reference/top_classifier.py \
-  --lms-delay 1
+.venv/bin/python 03.Reference/evaluate_datasets.py \
+  --output-dir 03.Reference/artifacts/dataset_evaluation
 ```
 
 Alterar os parâmetros do MDC:
 
 ```bash
-.venv/bin/python 03.Reference/top_classifier.py \
+.venv/bin/python 03.Reference/evaluate_datasets.py \
   --fs-hz 6400 \
   --min-k 2
 ```
@@ -120,44 +108,34 @@ O treinamento gera:
 |---|---|
 | `model.joblib` | Modelo `DecisionTreeClassifier` treinado para uso em Python. |
 | `metrics.json` | Acurácia, matriz de confusão, relatório por classe e validação cruzada. |
-| `tree_q15.json` | Árvore exportada em formato simples para portar para RTL. |
-| `feature_map.csv` | Mapa das 144 features: FFT e MDC. |
+| `tree_q1_7.json` ou `tree_q1_15.json` | Árvore exportada em formato simples para portar para RTL. |
+| `feature_map.csv` | Mapa das 140 features: FFT e MDC. |
 
 ## Acurácia Obtida
 
 Foi executado um smoke test com 200 janelas por classe, totalizando 800 janelas balanceadas:
 
 ```bash
-.venv/bin/python 03.Reference/top_classifier.py \
-  --dataset motor_measurements_q15.parquet \
+.venv/bin/python 03.Reference/evaluate_datasets.py \
   --max-windows-per-class 200 \
   --cv-folds 3 \
   --output-dir /tmp/top_classifier_smoke_200
 ```
 
-Resultado obtido:
-
-```text
-Validation accuracy: 0.7438
-Test accuracy: 0.7250
-Feature count: 144
-```
-
-Esses valores são de teste rápido. Para obter a acurácia final do modelo completo, rode o treinamento padrão sem limitar `--max-windows-per-class`; o padrão usa 20.000 janelas por classe.
+Esse comando escreve `comparison.json`, `comparison.csv`, `pipeline_config.json`,
+`metrics.json`, `model.joblib` e a árvore quantizada de cada dataset válido.
 
 ## Parâmetros Padrão
 
 ```text
---dataset motor_measurements_q15.parquet
---window-size 64
---lms-delay 1
 --fs-hz 6400
 --min-k 2
+--data-width 8
 --max-depth 5
 --min-samples-leaf 16
---max-windows-per-class 20000
+--max-windows-per-class None
 --test-size 0.15
 --val-size 0.15
 --cv-folds 5
---output-dir 03.Reference/artifacts/top_classifier/<dataset_stem>
+--output-dir 03.Reference/artifacts/dataset_evaluation
 ```

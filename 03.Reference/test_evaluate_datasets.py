@@ -111,7 +111,7 @@ class TestEvaluateDatasets(unittest.TestCase):
             self.assertEqual(labels.tolist().count(0), 2)
             self.assertEqual(labels.tolist().count(3), 2)
 
-    def test_evaluates_all_pipeline_configs_and_writes_comparison(self) -> None:
+    def test_evaluates_fixed_pipeline_config_and_writes_comparison(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             dataset_path = root / "dataset_q15.parquet"
@@ -142,7 +142,7 @@ class TestEvaluateDatasets(unittest.TestCase):
             self.assertTrue((output_dir / "comparison.json").is_file())
             self.assertTrue((output_dir / "comparison.csv").is_file())
             self.assertTrue(
-                (output_dir / "dataset_q15" / "lms_on_mdc_off" / "result.json").is_file()
+                (output_dir / "dataset_q15" / "lms_off_mdc_on" / "result.json").is_file()
             )
 
             comparison = json.loads((output_dir / "comparison.json").read_text(encoding="utf-8"))

@@ -1,4 +1,117 @@
 import numpy as np
+from functools import lru_cache
+
+SUPPORTED_DATA_WIDTHS = (8, 16)
+
+
+def q_format(data_width):
+    if data_width not in SUPPORTED_DATA_WIDTHS:
+        raise ValueError(f"data_width must be one of {SUPPORTED_DATA_WIDTHS}, got {data_width}")
+    return f"q1_{data_width - 1}"
+
+
+def fixed_point_params(data_width):
+    q_format(data_width)
+    scale = float(2 ** (data_width - 1))
+    min_value = -(2 ** (data_width - 1))
+    max_value = (2 ** (data_width - 1)) - 1
+    return scale, min_value, max_value
+
+
+def quantize_signed(values, data_width):
+    scale, min_value, max_value = fixed_point_params(data_width)
+    quantized = np.rint(np.asarray(values) * scale)
+    return np.clip(quantized, min_value, max_value).astype(np.int32)
+
+
+def fft_magnitude_q(signal, data_width, window_size=64, *, input_is_float=False):
+    """
+    Computes fixed-point FFT magnitude features for Q1.7/Q1.15 samples.
+
+    The FFT output is divided by window_size before real/imag requantization,
+    then magnitude is approximated as abs(real) + abs(imag) and saturated to
+    the unsigned feature range of the selected Q format.
+    """
+    q_format(data_width)
+    signal = np.asarray(signal)
+    if signal.shape != (window_size,):
+        raise ValueError(f"signal must have shape ({window_size},), got {signal.shape}")
+    if window_size <= 0 or window_size & (window_size - 1):
+        raise ValueError(f"window_size must be a power of 2, got {window_size}")
+    if not input_is_float and not np.issubdtype(signal.dtype, np.integer):
+        raise ValueError(f"signal must contain integer fixed-point values, got {signal.dtype}")
+
+    if input_is_float:
+        scale, _, max_value = fixed_point_params(data_width)
+        signal_float = signal.astype(np.float64, copy=False)
+    else:
+        scale, min_value, max_value = fixed_point_params(data_width)
+        min_sample = int(np.min(signal)) if signal.size else 0
+        max_sample = int(np.max(signal)) if signal.size else 0
+        if min_sample < min_value or max_sample > max_value:
+            raise ValueError(
+                "samples out of range for "
+                f"{q_format(data_width)}: expected {min_value}..{max_value}, "
+                f"got {min_sample}..{max_sample}"
+            )
+        return fft_magnitude_q_batch(signal.reshape(1, window_size), data_width, window_size)[0]
+
+    fft_values = np.einsum("i,oi->o", signal_float, make_fft_matrix(window_size))
+
+    real = quantize_signed(fft_values.real, data_width)
+    imag = quantize_signed(fft_values.imag, data_width)
+    magnitude = np.abs(real) + np.abs(imag)
+    return np.clip(magnitude, 0, max_value).astype(np.int32)
+
+
+def fft_magnitude_q_batch(signals, data_width, window_size=64):
+    """
+    Batch version of fft_magnitude_q for integer fixed-point windows.
+
+    signals must have shape (window_count, window_size). The returned array has
+    shape (window_count, window_size).
+    """
+    q_format(data_width)
+    signals = np.asarray(signals)
+    if signals.ndim != 2 or signals.shape[1] != window_size:
+        raise ValueError(
+            f"signals must have shape (window_count, {window_size}), got {signals.shape}"
+        )
+    if not np.issubdtype(signals.dtype, np.integer):
+        raise ValueError(f"signals must contain integer fixed-point values, got {signals.dtype}")
+
+    scale, min_value, max_value = fixed_point_params(data_width)
+    if signals.size:
+        min_sample = int(np.min(signals))
+        max_sample = int(np.max(signals))
+        if min_sample < min_value or max_sample > max_value:
+            raise ValueError(
+                "samples out of range for "
+                f"{q_format(data_width)}: expected {min_value}..{max_value}, "
+                f"got {min_sample}..{max_sample}"
+            )
+
+    signal_float = signals.astype(np.float64) / scale
+    fft_values = np.einsum("ni,oi->no", signal_float, make_fft_matrix(window_size))
+    real = quantize_signed(fft_values.real, data_width)
+    imag = quantize_signed(fft_values.imag, data_width)
+    magnitude = np.abs(real) + np.abs(imag)
+    return np.clip(magnitude, 0, max_value).astype(np.int32)
+
+
+@lru_cache(maxsize=None)
+def make_fft_matrix(window_size):
+    indices = bit_reverse_order(window_size)
+    matrix = np.empty((window_size, window_size), dtype=np.complex128)
+    for column in range(window_size):
+        basis = np.zeros(window_size, dtype=np.float64)
+        basis[column] = 1.0
+        scrambled = fft_dif_radix2(basis)
+        ordered = np.empty_like(scrambled)
+        ordered[indices] = scrambled
+        matrix[:, column] = ordered / window_size
+    return matrix
+
 
 def fft_dif_radix2(x):
     """

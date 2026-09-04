@@ -6,8 +6,8 @@ floating-point error.
 
 | Module | Status |
 |---|---|
-| mdc | not implemented |
-| fft | not implemented |
+| mdc | implemented: three-peak GCD features with Q1.7/Q1.15 saturation |
+| fft | implemented: 64-point DIF FFT magnitude features for Q1.7/Q1.15 |
 | matrix_inv | not implemented |
 | lms | not implemented |
 | ml_classifier | implemented: see `artifacts/ml_classifier/README.md` |
@@ -20,8 +20,8 @@ The ML reference flow is split into three layers:
 | File | Responsibility |
 |---|---|
 | `ml_classifier.py` | Pure reusable classifier API. Receives precomputed fixed-point feature matrices and labels. |
-| `ml_pipeline.py` | Top processing chain. Receives four vibration channels, applies optional LMS, FFT, optional MDC, computes `n_features`, and calls `MLClassifier`. |
-| `evaluate_datasets.py` | Dataset/logistics top. Reads Parquet datasets, balances windows by class, runs pipeline configurations, tests streaming classification, and writes comparison metrics. |
+| `ml_pipeline.py` | Top processing chain. Receives four vibration channels, keeps LMS off by default, applies FFT and MDC, computes `n_features`, and calls `MLClassifier`. |
+| `evaluate_datasets.py` | Dataset/logistics top. Reads Parquet datasets, balances windows by class, runs the fixed LMS-off/MDC-on pipeline, tests streaming classification, and writes comparison metrics. |
 
 ### `MLClassifier`
 
@@ -50,7 +50,7 @@ Use `MLPipeline` when the input is four streams/channels of motor vibration samp
 ```python
 from ml_pipeline import MLPipeline
 
-pipeline = MLPipeline(data_width=16, lms=True, mdc=True)
+pipeline = MLPipeline(data_width=8)
 metrics = pipeline.train(ch0, ch1, ch2, ch3, labels)
 
 valid, class_id = pipeline.classifier(sample_ch0, sample_ch1, sample_ch2, sample_ch3)
@@ -61,6 +61,10 @@ The pipeline uses fixed 64-sample windows. During streaming classification,
 the 64th sample it processes the window, clears the buffer, and returns
 `(True, class_id)`.
 
+The official distributed reference flow defaults to `data_width=8`, `lms=False`
+and `mdc=True`. With `data_width=8`, samples use Q1.7 (`-128..127`) and
+classifier features are saturated to `0..127`.
+
 Feature counts:
 
 | Configuration | `n_features` |
@@ -70,7 +74,7 @@ Feature counts:
 
 ### Dataset evaluation top
 
-Run all processed Parquet datasets through all pipeline configurations:
+Run all processed Parquet datasets through the fixed LMS-off/MDC-on pipeline:
 
 ```bash
 .venv/bin/python 03.Reference/evaluate_datasets.py
@@ -88,9 +92,6 @@ four vibration channels, infers `data_width` from channel dtype (`int16` or
 
 | Config name | LMS | MDC |
 |---|---|---|
-| `lms_on_mdc_off` | true | false |
-| `lms_on_mdc_on` | true | true |
-| `lms_off_mdc_off` | false | false |
 | `lms_off_mdc_on` | false | true |
 
 Outputs are written under:

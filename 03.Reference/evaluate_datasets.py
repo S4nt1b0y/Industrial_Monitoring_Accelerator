@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Evaluate all processed Parquet datasets across MLPipeline configurations."""
+"""Evaluate processed Parquet datasets with the fixed MLPipeline configuration."""
 
 from __future__ import annotations
 
@@ -30,9 +30,6 @@ VIBRATION_COLUMNS = (
     "aceleracao_y_mancal_b",
 )
 PIPELINE_CONFIGS = (
-    {"name": "lms_on_mdc_off", "lms": True, "mdc": False},
-    {"name": "lms_on_mdc_on", "lms": True, "mdc": True},
-    {"name": "lms_off_mdc_off", "lms": False, "mdc": False},
     {"name": "lms_off_mdc_on", "lms": False, "mdc": True},
 )
 
@@ -438,7 +435,7 @@ def print_summary(rows: list[dict[str, Any]], invalid_datasets: list[dict[str, s
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Evaluate every processed Parquet dataset with all MLPipeline configurations."
+        description="Evaluate every processed Parquet dataset with LMS off and MDC on."
     )
     parser.add_argument("--dataset-dir", type=Path, default=DEFAULT_DATASET_DIR)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)

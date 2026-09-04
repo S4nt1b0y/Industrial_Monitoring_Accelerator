@@ -10,9 +10,9 @@ from typing import Any
 
 import numpy as np
 
-from fft import bit_reverse_order, fft_dif_radix2
+from fft import fft_magnitude_q, fft_magnitude_q_batch
 from lms import LMSHardwareModel
-from mdc import processar_tres_picos
+from mdc import mdc_features_from_magnitude, mdc_features_from_magnitude_batch
 from ml_classifier import MLClassifier, SUPPORTED_DATA_WIDTHS
 
 
@@ -33,14 +33,14 @@ DEFAULT_LMS_MU = 0.01
 
 
 class MLPipeline:
-    """Configurable LMS -> FFT -> MDC pipeline connected to MLClassifier."""
+    """Fixed FFT + MDC pipeline connected to MLClassifier, with optional LMS compatibility."""
 
     def __init__(
         self,
-        data_width: int,
+        data_width: int = 8,
         *,
-        lms: bool = True,
-        mdc: bool = False,
+        lms: bool = False,
+        mdc: bool = True,
         fs_hz: int = DEFAULT_FS_HZ,
         min_k: int = DEFAULT_MIN_K,
         lms_delay: int = DEFAULT_LMS_DELAY,
@@ -60,6 +60,7 @@ class MLPipeline:
             raise ValueError(f"lms_delay must be between 1 and {WINDOW_SIZE - 1}, got {lms_delay}")
 
         self.data_width = int(data_width)
+        self.q_format = f"q1_{self.data_width - 1}"
         self.lms = bool(lms)
         self.mdc = bool(mdc)
         self.fs_hz = int(fs_hz)
@@ -73,7 +74,6 @@ class MLPipeline:
         self.max_sample_value = (2 ** (self.data_width - 1)) - 1
         self.max_feature_value = self.max_sample_value
         self.n_features = FFT_FEATURE_COUNT + (MDC_FEATURE_COUNT if self.mdc else 0)
-        self.fft_matrix = make_fft_matrix(self.window_size)
         self.sample_buffers: list[list[int]] = [[] for _ in range(CHANNEL_COUNT)]
         self.ml_classifier = MLClassifier(
             n_features=self.n_features,
@@ -170,9 +170,40 @@ class MLPipeline:
         trimmed_count = window_count * self.window_size
         stacked = np.column_stack([channel[:trimmed_count] for channel in channels])
         windows = stacked.reshape(window_count, self.window_size, CHANNEL_COUNT)
+        if not self.lms:
+            return self._windows_to_features_batch(windows)
+
         features = np.empty((window_count, self.n_features), dtype=np.int32)
         for window_index, window in enumerate(windows):
             features[window_index] = self.window_to_features(window)
+        return features
+
+    def _windows_to_features_batch(self, windows: np.ndarray, chunk_size: int = 4096) -> np.ndarray:
+        features = np.empty((windows.shape[0], self.n_features), dtype=np.int32)
+        for start in range(0, windows.shape[0], chunk_size):
+            stop = min(start + chunk_size, windows.shape[0])
+            chunk = windows[start:stop]
+            fft_features = []
+            mdc_features = []
+            for channel_index in range(CHANNEL_COUNT):
+                magnitude = fft_magnitude_q_batch(
+                    chunk[:, :, channel_index],
+                    self.data_width,
+                    window_size=self.window_size,
+                )
+                unique_bins = magnitude[:, FIRST_FFT_BIN : LAST_FFT_BIN + 1].astype(np.int32)
+                fft_features.append(unique_bins)
+                if self.mdc:
+                    mdc_features.append(
+                        mdc_features_from_magnitude_batch(
+                            unique_bins,
+                            self.data_width,
+                            fs_hz=self.fs_hz,
+                            min_k=self.min_k,
+                            n_fft=self.window_size,
+                        )
+                    )
+            features[start:stop] = np.concatenate([*fft_features, *mdc_features], axis=1)
         return features
 
     def window_to_features(self, window: np.ndarray) -> np.ndarray:
@@ -187,27 +218,18 @@ class MLPipeline:
         mdc_features = []
         for channel_index in range(CHANNEL_COUNT):
             channel = window[:, channel_index]
-            processed_channel = self._apply_lms(channel) if self.lms else self._to_float(channel)
-            magnitude = self._fft_magnitude_features(processed_channel)
+            processed_channel = self._apply_lms(channel) if self.lms else channel
+            magnitude = self._fft_magnitude_features(processed_channel, input_is_float=self.lms)
             fft_features.append(magnitude)
 
             if self.mdc:
-                peak_bins = three_largest_peak_bins(magnitude)
-                _, f0, result_valid = processar_tres_picos(
-                    int(peak_bins[0]),
-                    int(peak_bins[1]),
-                    int(peak_bins[2]),
-                    fs_hz=self.fs_hz,
-                    min_k=self.min_k,
-                    n_fft=self.window_size,
-                )
                 mdc_features.append(
-                    np.asarray(
-                        [
-                            np.clip(f0, 0, self.max_feature_value),
-                            int(result_valid),
-                        ],
-                        dtype=np.int32,
+                    mdc_features_from_magnitude(
+                        magnitude,
+                        self.data_width,
+                        fs_hz=self.fs_hz,
+                        min_k=self.min_k,
+                        n_fft=self.window_size,
                     )
                 )
 
@@ -216,7 +238,7 @@ class MLPipeline:
     def config(self) -> dict[str, Any]:
         return {
             "data_width": self.data_width,
-            "q_format": f"q1_{self.data_width - 1}",
+            "q_format": self.q_format,
             "window_size": self.window_size,
             "lms": self.lms,
             "mdc": self.mdc,
@@ -293,14 +315,19 @@ class MLPipeline:
             filtered[index] = result["y"]
         return filtered
 
-    def _fft_magnitude_features(self, signal_float: np.ndarray) -> np.ndarray:
-        fft_values = signal_float @ self.fft_matrix.T
-        real = quantize_signed(fft_values.real, self.scale, self.max_sample_value)
-        imag = quantize_signed(fft_values.imag, self.scale, self.max_sample_value)
-        real = real[FIRST_FFT_BIN : LAST_FFT_BIN + 1].astype(np.int32)
-        imag = imag[FIRST_FFT_BIN : LAST_FFT_BIN + 1].astype(np.int32)
-        magnitude = np.abs(real) + np.abs(imag)
-        return np.clip(magnitude, 0, self.max_feature_value).astype(np.int32)
+    def _fft_magnitude_features(
+        self,
+        signal: np.ndarray,
+        *,
+        input_is_float: bool = False,
+    ) -> np.ndarray:
+        magnitude = fft_magnitude_q(
+            signal,
+            self.data_width,
+            window_size=self.window_size,
+            input_is_float=input_is_float,
+        )
+        return magnitude[FIRST_FFT_BIN : LAST_FFT_BIN + 1].astype(np.int32)
 
     def _to_float(self, signal: np.ndarray) -> np.ndarray:
         return signal.astype(np.float64) / self.scale
@@ -333,36 +360,10 @@ class MLPipeline:
         if min_value < self.min_sample_value or max_value > self.max_sample_value:
             raise ValueError(
                 "samples out of range for "
-                f"q1_{self.data_width - 1}: expected "
+                f"{self.q_format}: expected "
                 f"{self.min_sample_value}..{self.max_sample_value}, "
                 f"got {min_value}..{max_value}"
             )
-
-
-def make_fft_matrix(window_size: int) -> np.ndarray:
-    indices = bit_reverse_order(window_size)
-    matrix = np.empty((window_size, window_size), dtype=np.complex128)
-    for column in range(window_size):
-        basis = np.zeros(window_size, dtype=np.float64)
-        basis[column] = 1.0
-        scrambled = fft_dif_radix2(basis)
-        ordered = np.empty_like(scrambled)
-        ordered[indices] = scrambled
-        matrix[:, column] = ordered / window_size
-    return matrix
-
-
-def quantize_signed(values: np.ndarray, scale: float, max_value: int) -> np.ndarray:
-    min_value = -(max_value + 1)
-    quantized = np.rint(values * scale)
-    return np.clip(quantized, min_value, max_value).astype(np.int32)
-
-
-def three_largest_peak_bins(magnitude_bins: np.ndarray) -> np.ndarray:
-    if magnitude_bins.shape[0] < 3:
-        raise ValueError("at least three FFT bins are required for peak selection")
-    peak_indices = np.argsort(-magnitude_bins, kind="stable")[:3]
-    return np.sort(peak_indices.astype(np.int16))
 
 
 def parse_args() -> argparse.Namespace:
@@ -374,9 +375,32 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--ch2", type=Path, required=True)
     parser.add_argument("--ch3", type=Path, required=True)
     parser.add_argument("--labels", type=Path, required=True)
-    parser.add_argument("--data-width", type=int, choices=SUPPORTED_DATA_WIDTHS, required=True)
-    parser.add_argument("--disable-lms", action="store_true")
-    parser.add_argument("--mdc", action="store_true")
+    parser.add_argument("--data-width", type=int, choices=SUPPORTED_DATA_WIDTHS, default=8)
+    parser.set_defaults(lms=False, mdc=True)
+    parser.add_argument(
+        "--enable-lms",
+        dest="lms",
+        action="store_true",
+        help="Compatibility option: enable the legacy LMS stage before FFT.",
+    )
+    parser.add_argument(
+        "--disable-lms",
+        dest="lms",
+        action="store_false",
+        help="Compatibility option: LMS is already disabled by default.",
+    )
+    parser.add_argument(
+        "--mdc",
+        dest="mdc",
+        action="store_true",
+        help="Compatibility option: MDC is already enabled by default.",
+    )
+    parser.add_argument(
+        "--disable-mdc",
+        dest="mdc",
+        action="store_false",
+        help="Compatibility option: disable MDC features.",
+    )
     parser.add_argument("--fs-hz", type=int, default=DEFAULT_FS_HZ)
     parser.add_argument("--min-k", type=int, default=DEFAULT_MIN_K)
     parser.add_argument("--lms-delay", type=int, default=DEFAULT_LMS_DELAY)
@@ -393,7 +417,7 @@ def parse_args() -> argparse.Namespace:
 def train_from_args(args: argparse.Namespace) -> dict[str, Any]:
     pipeline = MLPipeline(
         data_width=args.data_width,
-        lms=not args.disable_lms,
+        lms=args.lms,
         mdc=args.mdc,
         fs_hz=args.fs_hz,
         min_k=args.min_k,

@@ -10,7 +10,7 @@ from pathlib import Path
 
 import numpy as np
 
-from ml_pipeline import FFT_FEATURE_COUNT, MLPipeline, WINDOW_SIZE
+from ml_pipeline import FFT_FEATURE_COUNT, MDC_FEATURE_COUNT, MLPipeline, WINDOW_SIZE
 
 
 def synthetic_channels(
@@ -41,8 +41,20 @@ def synthetic_channels(
 
 class TestMLPipeline(unittest.TestCase):
     def test_initializes_supported_widths(self) -> None:
+        self.assertEqual(MLPipeline().data_width, 8)
         self.assertEqual(MLPipeline(data_width=16).data_width, 16)
         self.assertEqual(MLPipeline(data_width=8).data_width, 8)
+
+    def test_q17_defaults_to_no_lms_with_mdc(self) -> None:
+        pipeline = MLPipeline(data_width=8)
+        self.assertEqual(pipeline.q_format, "q1_7")
+        self.assertEqual(pipeline.scale, 128.0)
+        self.assertEqual(pipeline.min_sample_value, -128)
+        self.assertEqual(pipeline.max_sample_value, 127)
+        self.assertEqual(pipeline.max_feature_value, 127)
+        self.assertFalse(pipeline.lms)
+        self.assertTrue(pipeline.mdc)
+        self.assertEqual(pipeline.n_features, FFT_FEATURE_COUNT + MDC_FEATURE_COUNT)
 
     def test_rejects_invalid_width(self) -> None:
         with self.assertRaises(ValueError):
@@ -51,6 +63,32 @@ class TestMLPipeline(unittest.TestCase):
     def test_feature_count_without_and_with_mdc(self) -> None:
         self.assertEqual(MLPipeline(data_width=16, mdc=False).n_features, 132)
         self.assertEqual(MLPipeline(data_width=16, mdc=True).n_features, 140)
+
+    def test_q17_fft_and_mdc_features_are_saturated(self) -> None:
+        ch0, ch1, ch2, ch3, _ = synthetic_channels(data_width=8, windows_per_class=1)
+        pipeline = MLPipeline(data_width=8)
+        window = np.column_stack(
+            [ch0[:WINDOW_SIZE], ch1[:WINDOW_SIZE], ch2[:WINDOW_SIZE], ch3[:WINDOW_SIZE]]
+        )
+        features = pipeline.window_to_features(window)
+        fft_features = features[:FFT_FEATURE_COUNT]
+        mdc_features = features[FFT_FEATURE_COUNT:]
+
+        self.assertEqual(features.shape, (FFT_FEATURE_COUNT + MDC_FEATURE_COUNT,))
+        self.assertEqual(mdc_features.shape, (MDC_FEATURE_COUNT,))
+        self.assertTrue(np.all(fft_features >= 0))
+        self.assertTrue(np.all(fft_features <= 127))
+        self.assertTrue(np.all(mdc_features >= 0))
+        self.assertTrue(np.all(mdc_features <= 127))
+
+    def test_batch_feature_extraction_matches_scalar_path(self) -> None:
+        ch0, ch1, ch2, ch3, _ = synthetic_channels(data_width=8, windows_per_class=2)
+        pipeline = MLPipeline(data_width=8)
+        batch = pipeline.channels_to_features((ch0, ch1, ch2, ch3))
+        windows = np.column_stack([ch0, ch1, ch2, ch3]).reshape(-1, WINDOW_SIZE, 4)
+        scalar = np.vstack([pipeline.window_to_features(window) for window in windows])
+
+        np.testing.assert_array_equal(batch, scalar)
 
     def test_trains_with_synthetic_channels(self) -> None:
         ch0, ch1, ch2, ch3, labels = synthetic_channels()
