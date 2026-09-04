@@ -1,0 +1,4 @@
+dataset,data_width,lms,mdc,n_features,balanced_windows_per_class,internal_train_accuracy,internal_validation_accuracy,internal_test_accuracy,streaming_accuracy,streaming_valid_predictions,artifact_dir
+motor_measurements_q15.parquet,16,False,True,140,71999,0.7944746609397978,0.7904956427015251,0.7940359477124183,0.7926157407407407,43200,03.Reference/artifacts/dataset_evaluation/motor_measurements_q15/lms_off_mdc_on
+motor_vibration_q115.parquet,16,False,True,140,120000,0.7932590800387956,0.7946111991634124,0.7922549019607843,0.7924722222222222,72000,03.Reference/artifacts/dataset_evaluation/motor_vibration_q115/lms_off_mdc_on
+motor_vibration_q17.parquet,8,False,True,140,120000,0.761242161212049,0.7604777699710789,0.7606535947712418,0.7592777777777778,72000,03.Reference/artifacts/dataset_evaluation/motor_vibration_q17/lms_off_mdc_on

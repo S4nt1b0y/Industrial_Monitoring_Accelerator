@@ -2,176 +2,143 @@
 
 module tb_mdc_tres_picos;
 
-    localparam WIDTH = 6;
-    localparam N_FFT = 64;
+localparam WIDTH = 6;
+localparam N_FFT = 64;
 
-    reg clk;
-    reg reset;
-    reg start;
+reg clk;
+reg reset;
+reg start;
+reg [WIDTH-1:0] pico1_i;
+reg [WIDTH-1:0] pico2_i;
+reg [WIDTH-1:0] pico3_i;
+reg [31:0] fs_hz;
+reg [WIDTH-1:0] min_k;
 
-    reg  [WIDTH-1:0] pico_in;
-    reg              pico_valid;
-    wire             pico_ready;
+wire [WIDTH-1:0] k0;
+wire [31:0] f0;
+wire busy;
+wire done;
+wire result_valid;
 
-    reg  [31:0]      fs_hz;
-    reg  [WIDTH-1:0] min_k;
+integer erros;
+integer cycles;
 
-    wire [WIDTH-1:0] k0;
-    wire [31:0]      f0;
-    wire             busy;
-    wire             done;
-    wire             result_valid;
+mdc_tres_picos #(
+    .WIDTH(WIDTH),
+    .N_FFT(N_FFT)
+) dut (
+    .clk(clk),
+    .reset(reset),
+    .start(start),
+    .pico1_i(pico1_i),
+    .pico2_i(pico2_i),
+    .pico3_i(pico3_i),
+    .fs_hz(fs_hz),
+    .min_k(min_k),
+    .k0(k0),
+    .f0(f0),
+    .busy(busy),
+    .done(done),
+    .result_valid(result_valid)
+);
 
-    integer erros;
+initial begin
+    clk = 1'b0;
+    forever #5 clk = ~clk;
+end
 
+task testa_janela;
+    input [WIDTH-1:0] p1;
+    input [WIDTH-1:0] p2;
+    input [WIDTH-1:0] p3;
+    input [WIDTH-1:0] k0_esperado;
+    input [31:0] f0_esperado;
+    input valid_esperado;
+    begin
+        $display("");
+        $display("Testando picos: %0d, %0d, %0d", p1, p2, p3);
 
-    mdc_tres_picos #(
-        .WIDTH(WIDTH),
-        .N_FFT(N_FFT)
-    ) dut (
-        .clk(clk),
-        .reset(reset),
-        .start(start),
-        .pico_in(pico_in),
-        .pico_valid(pico_valid),
-        .pico_ready(pico_ready),
-        .fs_hz(fs_hz),
-        .min_k(min_k),
-        .k0(k0),
-        .f0(f0),
-        .busy(busy),
-        .done(done),
-        .result_valid(result_valid)
-    );
+        @(negedge clk);
+        pico1_i = p1;
+        pico2_i = p2;
+        pico3_i = p3;
+        start = 1'b1;
 
+        @(negedge clk);
+        start = 1'b0;
 
-    // clock de 100 MHz
-    initial begin
-        clk = 0;
-        forever #5 clk = ~clk;
-    end
+        fork : wait_done_or_timeout
+            begin
+                @(posedge done);
+            end
+            begin
+                cycles = 0;
+                while (!done && cycles < 1000) begin
+                    @(posedge clk);
+                    cycles = cycles + 1;
+                end
+            end
+        join_any
+        disable wait_done_or_timeout;
 
-
-    // Envia um pico somente quando o módulo estiver pronto
-    task envia_pico;
-        input [WIDTH-1:0] valor;
-        begin
-            wait (pico_ready);
-
-            @(negedge clk);
-            pico_in    = valor;
-            pico_valid = 1;
-
-            @(negedge clk);
-            pico_valid = 0;
-        end
-    endtask
-
-
-    // Executa uma janela completa com três picos
-    task testa_janela;
-        input [WIDTH-1:0] p1;
-        input [WIDTH-1:0] p2;
-        input [WIDTH-1:0] p3;
-
-        input [WIDTH-1:0] k0_esperado;
-        input [31:0]      f0_esperado;
-        input              valid_esperado;
-
-        begin
-            $display("");
-            $display("Testando picos: %0d, %0d, %0d", p1, p2, p3);
-
-            // inicia uma nova janela
-            @(negedge clk);
-            start = 1;
-
-            @(negedge clk);
-            start = 0;
-
-            envia_pico(p1);
-            envia_pico(p2);
-            envia_pico(p3);
-
-            // espera o processamento terminar
-            wait (done);
+        if (!done) begin
+            $display("Resultado: ERRO - timeout");
+            erros = erros + 1;
+        end else begin
             #1;
-
             $display("Obtido   -> k0 = %0d | f0 = %0d Hz | valid = %0d",
                      k0, f0, result_valid);
-
             $display("Esperado -> k0 = %0d | f0 = %0d Hz | valid = %0d",
                      k0_esperado, f0_esperado, valid_esperado);
 
             if ((k0 == k0_esperado) &&
                 (f0 == f0_esperado) &&
                 (result_valid == valid_esperado)) begin
-
                 $display("Resultado: OK");
-
-            end
-            else begin
+            end else begin
                 $display("Resultado: ERRO");
                 erros = erros + 1;
             end
-
-            // deixa o módulo voltar ao IDLE antes do próximo teste
-            @(posedge clk);
-            @(posedge clk);
         end
-    endtask
 
-
-    initial begin
-        reset      = 1;
-        start      = 0;
-        pico_in    = 0;
-        pico_valid = 0;
-
-        fs_hz = 6400;
-        min_k = 2;
-
-        erros = 0;
-
-        // reset inicial
-        repeat (2) @(posedge clk);
-        reset = 0;
-
-
-        // Mesmos casos usados no modelo em Python
-
-        // MDC(12,18,30) = 6
-        // f0 = 6 * 6400 / 64 = 600 Hz
-        testa_janela(12, 18, 30, 6, 600, 1);
-
-        // MDC(8,16,24) = 8
-        testa_janela(8, 16, 24, 8, 800, 1);
-
-        // MDC(5,10,20) = 5
-        testa_janela(5, 10, 20, 5, 500, 1);
-
-        // Pico igual a zero: janela inválida
-        testa_janela(0, 18, 30, 0, 0, 0);
-
-        // Três picos iguais
-        testa_janela(12, 12, 12, 12, 1200, 1);
-
-        // MDC = 1, menor que min_k = 2: janela inválida
-        testa_janela(12, 17, 31, 0, 0, 0);
-
-
-        $display("");
-        $display("----------------------------------------");
-
-        if (erros == 0)
-            $display("Todos os testes passaram.");
-        else
-            $display("Foram encontrados %0d erro(s).", erros);
-
-        $display("----------------------------------------");
-
-        #20;
-        $finish;
+        @(posedge clk);
+        @(posedge clk);
     end
+endtask
+
+initial begin
+    reset = 1'b1;
+    start = 1'b0;
+    pico1_i = {WIDTH{1'b0}};
+    pico2_i = {WIDTH{1'b0}};
+    pico3_i = {WIDTH{1'b0}};
+    fs_hz = 6400;
+    min_k = 2;
+    erros = 0;
+
+    repeat (2) @(posedge clk);
+    reset = 1'b0;
+
+    testa_janela(12, 18, 30, 6, 600, 1);
+    testa_janela(8, 16, 24, 8, 800, 1);
+    testa_janela(5, 10, 20, 5, 500, 1);
+    testa_janela(0, 18, 30, 0, 0, 0);
+    testa_janela(12, 12, 12, 12, 1200, 1);
+    testa_janela(12, 17, 31, 0, 0, 0);
+
+    $display("");
+    $display("----------------------------------------");
+
+    if (erros == 0) begin
+        $display("Todos os testes passaram.");
+    end else begin
+        $display("Foram encontrados %0d erro(s).", erros);
+    end
+
+    $display("----------------------------------------");
+
+    #20;
+    $finish;
+end
 
 endmodule

@@ -1,0 +1,7 @@
+numpy
+pandas
+scipy
+nptdms
+pyarrow
+scikit-learn
+joblib

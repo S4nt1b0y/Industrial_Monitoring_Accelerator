@@ -1,0 +1,212 @@
+{
+  "dataset": {
+    "name": "motor_vibration_q115.parquet",
+    "path": "/home/s4nt1boy/Projects/Industrial_Monitoring_Accelerator/07.Datasets/processed/motor_vibration_q115.parquet",
+    "q_format": "q1_15"
+  },
+  "artifact_dir": "03.Reference/artifacts/ml_classifier/motor_vibration_q115",
+  "class_map": {
+    "0": "operacao_normal",
+    "1": "desalinhamento",
+    "2": "desbalanceamento",
+    "3": "desgaste_rolamento"
+  },
+  "input_columns": [
+    "aceleracao_x_mancal_a",
+    "aceleracao_y_mancal_a",
+    "aceleracao_x_mancal_b",
+    "aceleracao_y_mancal_b"
+  ],
+  "window_size": 64,
+  "selected_fft_bins": {
+    "first": 0,
+    "last": 32,
+    "count_per_channel": 33
+  },
+  "feature_count": 132,
+  "fft_q_format": "q1_15",
+  "fft_scale": "fft_output_divided_by_window_size_before_q15_quantization",
+  "classifier_output": "class_id_integer_0_to_3",
+  "sample_counts": {
+    "total": {
+      "0": 20000,
+      "1": 20000,
+      "2": 20000,
+      "3": 20000
+    },
+    "train": {
+      "0": 14000,
+      "1": 14000,
+      "2": 14000,
+      "3": 14000
+    },
+    "validation": {
+      "0": 3000,
+      "1": 3000,
+      "2": 3000,
+      "3": 3000
+    },
+    "test": {
+      "0": 3000,
+      "1": 3000,
+      "2": 3000,
+      "3": 3000
+    }
+  },
+  "model": {
+    "type": "DecisionTreeClassifier",
+    "max_depth": 5,
+    "min_samples_leaf": 16,
+    "class_weight": "balanced",
+    "node_count": 35,
+    "depth": 5
+  },
+  "cross_validation": {
+    "folds": 5,
+    "accuracy_scores": [
+      0.7879464285714286,
+      0.7834821428571429,
+      0.7941071428571429,
+      0.788125,
+      0.7875892857142858
+    ],
+    "accuracy_mean": 0.78825,
+    "accuracy_std": 0.003393608939264077
+  },
+  "validation": {
+    "accuracy": 0.7903333333333333,
+    "confusion_matrix": [
+      [
+        1987,
+        63,
+        950,
+        0
+      ],
+      [
+        11,
+        2826,
+        163,
+        0
+      ],
+      [
+        1141,
+        187,
+        1672,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        2999
+      ]
+    ],
+    "classification_report": {
+      "operacao_normal": {
+        "precision": 0.6330041414463204,
+        "recall": 0.6623333333333333,
+        "f1-score": 0.6473366997882392,
+        "support": 3000.0
+      },
+      "desalinhamento": {
+        "precision": 0.9184270393240169,
+        "recall": 0.942,
+        "f1-score": 0.9300641764028303,
+        "support": 3000.0
+      },
+      "desbalanceamento": {
+        "precision": 0.6003590664272891,
+        "recall": 0.5573333333333333,
+        "f1-score": 0.5780466724286949,
+        "support": 3000.0
+      },
+      "desgaste_rolamento": {
+        "precision": 1.0,
+        "recall": 0.9996666666666667,
+        "f1-score": 0.9998333055509252,
+        "support": 3000.0
+      },
+      "accuracy": 0.7903333333333333,
+      "macro avg": {
+        "precision": 0.7879475617994066,
+        "recall": 0.7903333333333333,
+        "f1-score": 0.7888202135426724,
+        "support": 12000.0
+      },
+      "weighted avg": {
+        "precision": 0.7879475617994067,
+        "recall": 0.7903333333333333,
+        "f1-score": 0.7888202135426724,
+        "support": 12000.0
+      }
+    }
+  },
+  "test": {
+    "accuracy": 0.78425,
+    "confusion_matrix": [
+      [
+        1954,
+        77,
+        969,
+        0
+      ],
+      [
+        11,
+        2834,
+        155,
+        0
+      ],
+      [
+        1176,
+        199,
+        1625,
+        0
+      ],
+      [
+        0,
+        2,
+        0,
+        2998
+      ]
+    ],
+    "classification_report": {
+      "operacao_normal": {
+        "precision": 0.6220948742438713,
+        "recall": 0.6513333333333333,
+        "f1-score": 0.6363784399934864,
+        "support": 3000.0
+      },
+      "desalinhamento": {
+        "precision": 0.9106683804627249,
+        "recall": 0.9446666666666667,
+        "f1-score": 0.9273560209424084,
+        "support": 3000.0
+      },
+      "desbalanceamento": {
+        "precision": 0.5911240451073118,
+        "recall": 0.5416666666666666,
+        "f1-score": 0.5653157070794921,
+        "support": 3000.0
+      },
+      "desgaste_rolamento": {
+        "precision": 1.0,
+        "recall": 0.9993333333333333,
+        "f1-score": 0.9996665555185061,
+        "support": 3000.0
+      },
+      "accuracy": 0.78425,
+      "macro avg": {
+        "precision": 0.7809718249534771,
+        "recall": 0.78425,
+        "f1-score": 0.7821791808834733,
+        "support": 12000.0
+      },
+      "weighted avg": {
+        "precision": 0.7809718249534771,
+        "recall": 0.78425,
+        "f1-score": 0.7821791808834733,
+        "support": 12000.0
+      }
+    }
+  }
+}

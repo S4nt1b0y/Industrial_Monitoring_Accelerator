@@ -28,9 +28,9 @@ LABELS = {
     "Normal": "operacao_normal",
     "Unbalance": "desbalanceamento",
     "Misalign": "desalinhamento",
-    "BPFO": "desgaste_rolamento",
     "BPFI": "desgaste_rolamento",
 }
+EXCLUDED_FAULT_PREFIXES = ("BPFO",)
 
 VIBRATION_COLUMNS = [
     "aceleracao_x_mancal_a",
@@ -194,6 +194,14 @@ def parse_source_metadata(stem: str) -> SourceMetadata:
     raise ValueError(f"Cannot infer label from source name: {stem}")
 
 
+def is_excluded_source(stem: str) -> bool:
+    match = re.fullmatch(r"(?P<load>\d+)Nm_(?P<fault>.+)", stem)
+    if not match:
+        return False
+    fault = match.group("fault")
+    return any(fault.startswith(prefix) for prefix in EXCLUDED_FAULT_PREFIXES)
+
+
 def slug_channel_name(channel_type: str, channel_name: str) -> str:
     mod = re.search(r"Mod(\d+)", channel_name)
     ai = re.search(r"(ai\d+)$", channel_name)
@@ -262,8 +270,16 @@ def discover_tdms_columns(paths: Iterable[Path]) -> list[str]:
 
 
 def pair_sources(input_dir: Path) -> list[tuple[str, Path, Path]]:
-    mat_files = {path.stem: path for path in input_dir.glob("*.mat")}
-    tdms_files = {path.stem: path for path in input_dir.glob("*.tdms")}
+    mat_files = {
+        path.stem: path
+        for path in input_dir.glob("*.mat")
+        if not is_excluded_source(path.stem)
+    }
+    tdms_files = {
+        path.stem: path
+        for path in input_dir.glob("*.tdms")
+        if not is_excluded_source(path.stem)
+    }
 
     missing_mat = sorted(set(tdms_files) - set(mat_files))
     missing_tdms = sorted(set(mat_files) - set(tdms_files))
