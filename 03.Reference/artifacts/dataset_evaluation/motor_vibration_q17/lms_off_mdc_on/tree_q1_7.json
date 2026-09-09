@@ -1,0 +1,454 @@
+{
+  "q_format": "q1_7",
+  "data_width": 8,
+  "output_format": "class_id_integer_0_to_3",
+  "class_map": {
+    "0": "operacao_normal",
+    "1": "desalinhamento",
+    "2": "desbalanceamento",
+    "3": "desgaste_rolamento"
+  },
+  "decision_rule": "if feature[feature_index] <= threshold then left_child else right_child",
+  "nodes": [
+    {
+      "node_id": 0,
+      "is_leaf": false,
+      "feature_index": 6,
+      "threshold": 2,
+      "left_child": 1,
+      "right_child": 32
+    },
+    {
+      "node_id": 1,
+      "is_leaf": false,
+      "feature_index": 122,
+      "threshold": 6,
+      "left_child": 2,
+      "right_child": 17
+    },
+    {
+      "node_id": 2,
+      "is_leaf": false,
+      "feature_index": 9,
+      "threshold": 0,
+      "left_child": 3,
+      "right_child": 10
+    },
+    {
+      "node_id": 3,
+      "is_leaf": false,
+      "feature_index": 122,
+      "threshold": 4,
+      "left_child": 4,
+      "right_child": 7
+    },
+    {
+      "node_id": 4,
+      "is_leaf": false,
+      "feature_index": 19,
+      "threshold": 0,
+      "left_child": 5,
+      "right_child": 6
+    },
+    {
+      "node_id": 5,
+      "is_leaf": true,
+      "class_id": 0,
+      "class_label": "operacao_normal"
+    },
+    {
+      "node_id": 6,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 7,
+      "is_leaf": false,
+      "feature_index": 19,
+      "threshold": 0,
+      "left_child": 8,
+      "right_child": 9
+    },
+    {
+      "node_id": 8,
+      "is_leaf": true,
+      "class_id": 2,
+      "class_label": "desbalanceamento"
+    },
+    {
+      "node_id": 9,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 10,
+      "is_leaf": false,
+      "feature_index": 102,
+      "threshold": 2,
+      "left_child": 11,
+      "right_child": 14
+    },
+    {
+      "node_id": 11,
+      "is_leaf": false,
+      "feature_index": 2,
+      "threshold": 2,
+      "left_child": 12,
+      "right_child": 13
+    },
+    {
+      "node_id": 12,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 13,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 14,
+      "is_leaf": false,
+      "feature_index": 102,
+      "threshold": 2,
+      "left_child": 15,
+      "right_child": 16
+    },
+    {
+      "node_id": 15,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 16,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 17,
+      "is_leaf": false,
+      "feature_index": 9,
+      "threshold": 0,
+      "left_child": 18,
+      "right_child": 25
+    },
+    {
+      "node_id": 18,
+      "is_leaf": false,
+      "feature_index": 122,
+      "threshold": 6,
+      "left_child": 19,
+      "right_child": 22
+    },
+    {
+      "node_id": 19,
+      "is_leaf": false,
+      "feature_index": 70,
+      "threshold": 2,
+      "left_child": 20,
+      "right_child": 21
+    },
+    {
+      "node_id": 20,
+      "is_leaf": true,
+      "class_id": 2,
+      "class_label": "desbalanceamento"
+    },
+    {
+      "node_id": 21,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 22,
+      "is_leaf": false,
+      "feature_index": 70,
+      "threshold": 0,
+      "left_child": 23,
+      "right_child": 24
+    },
+    {
+      "node_id": 23,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 24,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 25,
+      "is_leaf": false,
+      "feature_index": 36,
+      "threshold": 0,
+      "left_child": 26,
+      "right_child": 29
+    },
+    {
+      "node_id": 26,
+      "is_leaf": false,
+      "feature_index": 2,
+      "threshold": 2,
+      "left_child": 27,
+      "right_child": 28
+    },
+    {
+      "node_id": 27,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 28,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 29,
+      "is_leaf": false,
+      "feature_index": 102,
+      "threshold": 2,
+      "left_child": 30,
+      "right_child": 31
+    },
+    {
+      "node_id": 30,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 31,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 32,
+      "is_leaf": false,
+      "feature_index": 5,
+      "threshold": 2,
+      "left_child": 33,
+      "right_child": 48
+    },
+    {
+      "node_id": 33,
+      "is_leaf": false,
+      "feature_index": 102,
+      "threshold": 2,
+      "left_child": 34,
+      "right_child": 41
+    },
+    {
+      "node_id": 34,
+      "is_leaf": false,
+      "feature_index": 2,
+      "threshold": 0,
+      "left_child": 35,
+      "right_child": 38
+    },
+    {
+      "node_id": 35,
+      "is_leaf": false,
+      "feature_index": 1,
+      "threshold": 0,
+      "left_child": 36,
+      "right_child": 37
+    },
+    {
+      "node_id": 36,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 37,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 38,
+      "is_leaf": false,
+      "feature_index": 42,
+      "threshold": 0,
+      "left_child": 39,
+      "right_child": 40
+    },
+    {
+      "node_id": 39,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 40,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 41,
+      "is_leaf": false,
+      "feature_index": 105,
+      "threshold": 0,
+      "left_child": 42,
+      "right_child": 45
+    },
+    {
+      "node_id": 42,
+      "is_leaf": false,
+      "feature_index": 102,
+      "threshold": 2,
+      "left_child": 43,
+      "right_child": 44
+    },
+    {
+      "node_id": 43,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 44,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 45,
+      "is_leaf": false,
+      "feature_index": 18,
+      "threshold": 0,
+      "left_child": 46,
+      "right_child": 47
+    },
+    {
+      "node_id": 46,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 47,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 48,
+      "is_leaf": false,
+      "feature_index": 6,
+      "threshold": 2,
+      "left_child": 49,
+      "right_child": 56
+    },
+    {
+      "node_id": 49,
+      "is_leaf": false,
+      "feature_index": 102,
+      "threshold": 0,
+      "left_child": 50,
+      "right_child": 53
+    },
+    {
+      "node_id": 50,
+      "is_leaf": false,
+      "feature_index": 4,
+      "threshold": 2,
+      "left_child": 51,
+      "right_child": 52
+    },
+    {
+      "node_id": 51,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 52,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 53,
+      "is_leaf": false,
+      "feature_index": 102,
+      "threshold": 2,
+      "left_child": 54,
+      "right_child": 55
+    },
+    {
+      "node_id": 54,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 55,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 56,
+      "is_leaf": false,
+      "feature_index": 5,
+      "threshold": 2,
+      "left_child": 57,
+      "right_child": 60
+    },
+    {
+      "node_id": 57,
+      "is_leaf": false,
+      "feature_index": 102,
+      "threshold": 0,
+      "left_child": 58,
+      "right_child": 59
+    },
+    {
+      "node_id": 58,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 59,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 60,
+      "is_leaf": false,
+      "feature_index": 102,
+      "threshold": 0,
+      "left_child": 61,
+      "right_child": 62
+    },
+    {
+      "node_id": 61,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 62,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    }
+  ]
+}

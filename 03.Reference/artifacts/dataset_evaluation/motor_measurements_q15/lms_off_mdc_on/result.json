@@ -1,0 +1,1206 @@
+{
+  "dataset": {
+    "name": "motor_measurements_q15.parquet",
+    "path": "07.Datasets/processed/motor_measurements_q15.parquet",
+    "rows": 36863988,
+    "data_width": 16
+  },
+  "configuration": {
+    "name": "lms_off_mdc_on",
+    "lms": false,
+    "mdc": true
+  },
+  "counts": {
+    "available_windows_by_class": {
+      "0": 119999,
+      "1": 143999,
+      "2": 239999,
+      "3": 71999
+    },
+    "balanced_windows_per_class": 71999,
+    "total_balanced_windows": 287996,
+    "train_windows": 244796,
+    "test_windows": 43200
+  },
+  "train_metrics": {
+    "q_format": "q1_15",
+    "data_width": 16,
+    "feature_count": 140,
+    "feature_range": {
+      "min": 0,
+      "max": 32767
+    },
+    "class_map": {
+      "0": "operacao_normal",
+      "1": "desalinhamento",
+      "2": "desbalanceamento",
+      "3": "desgaste_rolamento"
+    },
+    "classifier_output": "class_id_integer_0_to_3",
+    "sample_counts": {
+      "total": {
+        "0": 61199,
+        "1": 61199,
+        "2": 61199,
+        "3": 61199
+      },
+      "train": {
+        "0": 42839,
+        "1": 42839,
+        "2": 42839,
+        "3": 42839
+      },
+      "validation": {
+        "0": 9180,
+        "1": 9180,
+        "2": 9180,
+        "3": 9180
+      },
+      "test": {
+        "0": 9180,
+        "1": 9180,
+        "2": 9180,
+        "3": 9180
+      }
+    },
+    "model": {
+      "type": "DecisionTreeClassifier",
+      "max_depth": 5,
+      "min_samples_leaf": 16,
+      "class_weight": "balanced",
+      "node_count": 35,
+      "depth": 5
+    },
+    "cross_validation": {
+      "folds": 5,
+      "accuracy_scores": [
+        0.7927170868347339,
+        0.7935280557906101,
+        0.7946660441772928,
+        0.7934113390330017,
+        0.7930611887601763
+      ],
+      "accuracy_mean": 0.7934767429191629,
+      "accuracy_std": 0.0006589553531691933
+    },
+    "train": {
+      "accuracy": 0.7944746609397978,
+      "confusion_matrix": [
+        [
+          26860,
+          775,
+          15204,
+          0
+        ],
+        [
+          91,
+          40823,
+          1913,
+          12
+        ],
+        [
+          15372,
+          1845,
+          25622,
+          0
+        ],
+        [
+          0,
+          6,
+          0,
+          42833
+        ]
+      ],
+      "classification_report": {
+        "operacao_normal": {
+          "precision": 0.634643101859509,
+          "recall": 0.6269987628095894,
+          "f1-score": 0.6307977736549165,
+          "support": 42839.0
+        },
+        "desalinhamento": {
+          "precision": 0.9395613247715713,
+          "recall": 0.9529400779663391,
+          "f1-score": 0.9462034118301502,
+          "support": 42839.0
+        },
+        "desbalanceamento": {
+          "precision": 0.5994992863660825,
+          "recall": 0.5980998622750298,
+          "f1-score": 0.5987987566898034,
+          "support": 42839.0
+        },
+        "desgaste_rolamento": {
+          "precision": 0.9997199206441825,
+          "recall": 0.9998599407082331,
+          "f1-score": 0.9997899257737733,
+          "support": 42839.0
+        },
+        "accuracy": 0.7944746609397978,
+        "macro avg": {
+          "precision": 0.7933559084103363,
+          "recall": 0.7944746609397979,
+          "f1-score": 0.7938974669871609,
+          "support": 171356.0
+        },
+        "weighted avg": {
+          "precision": 0.7933559084103363,
+          "recall": 0.7944746609397978,
+          "f1-score": 0.7938974669871609,
+          "support": 171356.0
+        }
+      }
+    },
+    "validation": {
+      "accuracy": 0.7904956427015251,
+      "confusion_matrix": [
+        [
+          5780,
+          152,
+          3248,
+          0
+        ],
+        [
+          21,
+          8731,
+          426,
+          2
+        ],
+        [
+          3408,
+          435,
+          5337,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          9179
+        ]
+      ],
+      "classification_report": {
+        "operacao_normal": {
+          "precision": 0.6276468671951352,
+          "recall": 0.6296296296296297,
+          "f1-score": 0.6286366849747131,
+          "support": 9180.0
+        },
+        "desalinhamento": {
+          "precision": 0.936903101191115,
+          "recall": 0.9510893246187364,
+          "f1-score": 0.9439429158332883,
+          "support": 9180.0
+        },
+        "desbalanceamento": {
+          "precision": 0.5922761069803574,
+          "recall": 0.5813725490196079,
+          "f1-score": 0.5867736792919576,
+          "support": 9180.0
+        },
+        "desgaste_rolamento": {
+          "precision": 0.9997821588062302,
+          "recall": 0.9998910675381264,
+          "f1-score": 0.9998366102064158,
+          "support": 9180.0
+        },
+        "accuracy": 0.7904956427015251,
+        "macro avg": {
+          "precision": 0.7891520585432095,
+          "recall": 0.7904956427015252,
+          "f1-score": 0.7897974725765936,
+          "support": 36720.0
+        },
+        "weighted avg": {
+          "precision": 0.7891520585432095,
+          "recall": 0.7904956427015251,
+          "f1-score": 0.7897974725765937,
+          "support": 36720.0
+        }
+      }
+    },
+    "test": {
+      "accuracy": 0.7940359477124183,
+      "confusion_matrix": [
+        [
+          5744,
+          148,
+          3288,
+          0
+        ],
+        [
+          17,
+          8742,
+          418,
+          3
+        ],
+        [
+          3260,
+          427,
+          5493,
+          0
+        ],
+        [
+          0,
+          2,
+          0,
+          9178
+        ]
+      ],
+      "classification_report": {
+        "operacao_normal": {
+          "precision": 0.6367365037135573,
+          "recall": 0.6257080610021787,
+          "f1-score": 0.6311741113125653,
+          "support": 9180.0
+        },
+        "desalinhamento": {
+          "precision": 0.9380834853525056,
+          "recall": 0.9522875816993464,
+          "f1-score": 0.9451321693064489,
+          "support": 9180.0
+        },
+        "desbalanceamento": {
+          "precision": 0.5971301228394391,
+          "recall": 0.5983660130718954,
+          "f1-score": 0.5977474291310735,
+          "support": 9180.0
+        },
+        "desgaste_rolamento": {
+          "precision": 0.9996732382093454,
+          "recall": 0.9997821350762527,
+          "f1-score": 0.9997276836773596,
+          "support": 9180.0
+        },
+        "accuracy": 0.7940359477124183,
+        "macro avg": {
+          "precision": 0.7929058375287119,
+          "recall": 0.7940359477124183,
+          "f1-score": 0.7934453483568619,
+          "support": 36720.0
+        },
+        "weighted avg": {
+          "precision": 0.7929058375287119,
+          "recall": 0.7940359477124183,
+          "f1-score": 0.7934453483568619,
+          "support": 36720.0
+        }
+      }
+    },
+    "pipeline": {
+      "data_width": 16,
+      "q_format": "q1_15",
+      "window_size": 64,
+      "lms": false,
+      "mdc": true,
+      "n_features": 140,
+      "sample_range": {
+        "min": -32768,
+        "max": 32767
+      },
+      "feature_range": {
+        "min": 0,
+        "max": 32767
+      },
+      "fft": {
+        "bins": {
+          "first": 0,
+          "last": 32,
+          "count_per_channel": 33
+        },
+        "feature_count": 132
+      },
+      "lms_config": {
+        "enabled": false,
+        "delay": null,
+        "taps": null,
+        "mu": null
+      },
+      "mdc_config": {
+        "enabled": true,
+        "features_per_channel": [
+          "f0",
+          "valid"
+        ],
+        "feature_count": 8,
+        "fs_hz": 6400,
+        "min_k": 2
+      },
+      "feature_layout": [
+        {
+          "feature_index": 0,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 0
+        },
+        {
+          "feature_index": 1,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 1
+        },
+        {
+          "feature_index": 2,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 2
+        },
+        {
+          "feature_index": 3,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 3
+        },
+        {
+          "feature_index": 4,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 4
+        },
+        {
+          "feature_index": 5,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 5
+        },
+        {
+          "feature_index": 6,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 6
+        },
+        {
+          "feature_index": 7,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 7
+        },
+        {
+          "feature_index": 8,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 8
+        },
+        {
+          "feature_index": 9,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 9
+        },
+        {
+          "feature_index": 10,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 10
+        },
+        {
+          "feature_index": 11,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 11
+        },
+        {
+          "feature_index": 12,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 12
+        },
+        {
+          "feature_index": 13,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 13
+        },
+        {
+          "feature_index": 14,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 14
+        },
+        {
+          "feature_index": 15,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 15
+        },
+        {
+          "feature_index": 16,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 16
+        },
+        {
+          "feature_index": 17,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 17
+        },
+        {
+          "feature_index": 18,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 18
+        },
+        {
+          "feature_index": 19,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 19
+        },
+        {
+          "feature_index": 20,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 20
+        },
+        {
+          "feature_index": 21,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 21
+        },
+        {
+          "feature_index": 22,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 22
+        },
+        {
+          "feature_index": 23,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 23
+        },
+        {
+          "feature_index": 24,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 24
+        },
+        {
+          "feature_index": 25,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 25
+        },
+        {
+          "feature_index": 26,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 26
+        },
+        {
+          "feature_index": 27,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 27
+        },
+        {
+          "feature_index": 28,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 28
+        },
+        {
+          "feature_index": 29,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 29
+        },
+        {
+          "feature_index": 30,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 30
+        },
+        {
+          "feature_index": 31,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 31
+        },
+        {
+          "feature_index": 32,
+          "channel": 0,
+          "source": "fft_magnitude",
+          "bin": 32
+        },
+        {
+          "feature_index": 33,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 0
+        },
+        {
+          "feature_index": 34,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 1
+        },
+        {
+          "feature_index": 35,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 2
+        },
+        {
+          "feature_index": 36,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 3
+        },
+        {
+          "feature_index": 37,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 4
+        },
+        {
+          "feature_index": 38,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 5
+        },
+        {
+          "feature_index": 39,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 6
+        },
+        {
+          "feature_index": 40,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 7
+        },
+        {
+          "feature_index": 41,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 8
+        },
+        {
+          "feature_index": 42,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 9
+        },
+        {
+          "feature_index": 43,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 10
+        },
+        {
+          "feature_index": 44,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 11
+        },
+        {
+          "feature_index": 45,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 12
+        },
+        {
+          "feature_index": 46,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 13
+        },
+        {
+          "feature_index": 47,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 14
+        },
+        {
+          "feature_index": 48,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 15
+        },
+        {
+          "feature_index": 49,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 16
+        },
+        {
+          "feature_index": 50,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 17
+        },
+        {
+          "feature_index": 51,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 18
+        },
+        {
+          "feature_index": 52,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 19
+        },
+        {
+          "feature_index": 53,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 20
+        },
+        {
+          "feature_index": 54,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 21
+        },
+        {
+          "feature_index": 55,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 22
+        },
+        {
+          "feature_index": 56,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 23
+        },
+        {
+          "feature_index": 57,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 24
+        },
+        {
+          "feature_index": 58,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 25
+        },
+        {
+          "feature_index": 59,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 26
+        },
+        {
+          "feature_index": 60,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 27
+        },
+        {
+          "feature_index": 61,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 28
+        },
+        {
+          "feature_index": 62,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 29
+        },
+        {
+          "feature_index": 63,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 30
+        },
+        {
+          "feature_index": 64,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 31
+        },
+        {
+          "feature_index": 65,
+          "channel": 1,
+          "source": "fft_magnitude",
+          "bin": 32
+        },
+        {
+          "feature_index": 66,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 0
+        },
+        {
+          "feature_index": 67,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 1
+        },
+        {
+          "feature_index": 68,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 2
+        },
+        {
+          "feature_index": 69,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 3
+        },
+        {
+          "feature_index": 70,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 4
+        },
+        {
+          "feature_index": 71,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 5
+        },
+        {
+          "feature_index": 72,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 6
+        },
+        {
+          "feature_index": 73,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 7
+        },
+        {
+          "feature_index": 74,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 8
+        },
+        {
+          "feature_index": 75,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 9
+        },
+        {
+          "feature_index": 76,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 10
+        },
+        {
+          "feature_index": 77,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 11
+        },
+        {
+          "feature_index": 78,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 12
+        },
+        {
+          "feature_index": 79,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 13
+        },
+        {
+          "feature_index": 80,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 14
+        },
+        {
+          "feature_index": 81,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 15
+        },
+        {
+          "feature_index": 82,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 16
+        },
+        {
+          "feature_index": 83,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 17
+        },
+        {
+          "feature_index": 84,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 18
+        },
+        {
+          "feature_index": 85,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 19
+        },
+        {
+          "feature_index": 86,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 20
+        },
+        {
+          "feature_index": 87,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 21
+        },
+        {
+          "feature_index": 88,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 22
+        },
+        {
+          "feature_index": 89,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 23
+        },
+        {
+          "feature_index": 90,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 24
+        },
+        {
+          "feature_index": 91,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 25
+        },
+        {
+          "feature_index": 92,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 26
+        },
+        {
+          "feature_index": 93,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 27
+        },
+        {
+          "feature_index": 94,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 28
+        },
+        {
+          "feature_index": 95,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 29
+        },
+        {
+          "feature_index": 96,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 30
+        },
+        {
+          "feature_index": 97,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 31
+        },
+        {
+          "feature_index": 98,
+          "channel": 2,
+          "source": "fft_magnitude",
+          "bin": 32
+        },
+        {
+          "feature_index": 99,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 0
+        },
+        {
+          "feature_index": 100,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 1
+        },
+        {
+          "feature_index": 101,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 2
+        },
+        {
+          "feature_index": 102,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 3
+        },
+        {
+          "feature_index": 103,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 4
+        },
+        {
+          "feature_index": 104,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 5
+        },
+        {
+          "feature_index": 105,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 6
+        },
+        {
+          "feature_index": 106,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 7
+        },
+        {
+          "feature_index": 107,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 8
+        },
+        {
+          "feature_index": 108,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 9
+        },
+        {
+          "feature_index": 109,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 10
+        },
+        {
+          "feature_index": 110,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 11
+        },
+        {
+          "feature_index": 111,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 12
+        },
+        {
+          "feature_index": 112,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 13
+        },
+        {
+          "feature_index": 113,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 14
+        },
+        {
+          "feature_index": 114,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 15
+        },
+        {
+          "feature_index": 115,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 16
+        },
+        {
+          "feature_index": 116,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 17
+        },
+        {
+          "feature_index": 117,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 18
+        },
+        {
+          "feature_index": 118,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 19
+        },
+        {
+          "feature_index": 119,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 20
+        },
+        {
+          "feature_index": 120,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 21
+        },
+        {
+          "feature_index": 121,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 22
+        },
+        {
+          "feature_index": 122,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 23
+        },
+        {
+          "feature_index": 123,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 24
+        },
+        {
+          "feature_index": 124,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 25
+        },
+        {
+          "feature_index": 125,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 26
+        },
+        {
+          "feature_index": 126,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 27
+        },
+        {
+          "feature_index": 127,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 28
+        },
+        {
+          "feature_index": 128,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 29
+        },
+        {
+          "feature_index": 129,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 30
+        },
+        {
+          "feature_index": 130,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 31
+        },
+        {
+          "feature_index": 131,
+          "channel": 3,
+          "source": "fft_magnitude",
+          "bin": 32
+        },
+        {
+          "feature_index": 132,
+          "channel": 0,
+          "source": "mdc",
+          "name": "f0"
+        },
+        {
+          "feature_index": 133,
+          "channel": 0,
+          "source": "mdc",
+          "name": "valid"
+        },
+        {
+          "feature_index": 134,
+          "channel": 1,
+          "source": "mdc",
+          "name": "f0"
+        },
+        {
+          "feature_index": 135,
+          "channel": 1,
+          "source": "mdc",
+          "name": "valid"
+        },
+        {
+          "feature_index": 136,
+          "channel": 2,
+          "source": "mdc",
+          "name": "f0"
+        },
+        {
+          "feature_index": 137,
+          "channel": 2,
+          "source": "mdc",
+          "name": "valid"
+        },
+        {
+          "feature_index": 138,
+          "channel": 3,
+          "source": "mdc",
+          "name": "f0"
+        },
+        {
+          "feature_index": 139,
+          "channel": 3,
+          "source": "mdc",
+          "name": "valid"
+        }
+      ]
+    }
+  },
+  "streaming_metrics": {
+    "accuracy": 0.7926157407407407,
+    "valid_predictions": 43200,
+    "expected_predictions": 43200,
+    "invalid_outputs": 0,
+    "confusion_matrix": [
+      [
+        6697,
+        200,
+        3903,
+        0
+      ],
+      [
+        22,
+        10314,
+        463,
+        1
+      ],
+      [
+        3874,
+        495,
+        6431,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        10799
+      ]
+    ]
+  },
+  "artifact_dir": "03.Reference/artifacts/dataset_evaluation/motor_measurements_q15/lms_off_mdc_on"
+}

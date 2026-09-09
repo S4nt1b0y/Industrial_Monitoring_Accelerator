@@ -1,0 +1,257 @@
+{
+  "q_format": "q1_15",
+  "output_format": "class_id_integer_0_to_3",
+  "class_map": {
+    "0": "operacao_normal",
+    "1": "desalinhamento",
+    "2": "desbalanceamento",
+    "3": "desgaste_rolamento"
+  },
+  "decision_rule": "if feature[feature_index] <= threshold_q15 then left_child else right_child",
+  "nodes": [
+    {
+      "node_id": 0,
+      "is_leaf": false,
+      "feature_index": 102,
+      "threshold_q15": 432,
+      "left_child": 1,
+      "right_child": 32
+    },
+    {
+      "node_id": 1,
+      "is_leaf": false,
+      "feature_index": 122,
+      "threshold_q15": 1430,
+      "left_child": 2,
+      "right_child": 17
+    },
+    {
+      "node_id": 2,
+      "is_leaf": false,
+      "feature_index": 9,
+      "threshold_q15": 102,
+      "left_child": 3,
+      "right_child": 10
+    },
+    {
+      "node_id": 3,
+      "is_leaf": false,
+      "feature_index": 122,
+      "threshold_q15": 978,
+      "left_child": 4,
+      "right_child": 7
+    },
+    {
+      "node_id": 4,
+      "is_leaf": false,
+      "feature_index": 15,
+      "threshold_q15": 36,
+      "left_child": 5,
+      "right_child": 6
+    },
+    {
+      "node_id": 5,
+      "is_leaf": true,
+      "class_id": 0,
+      "class_label": "operacao_normal"
+    },
+    {
+      "node_id": 6,
+      "is_leaf": true,
+      "class_id": 0,
+      "class_label": "operacao_normal"
+    },
+    {
+      "node_id": 7,
+      "is_leaf": false,
+      "feature_index": 8,
+      "threshold_q15": 66,
+      "left_child": 8,
+      "right_child": 9
+    },
+    {
+      "node_id": 8,
+      "is_leaf": true,
+      "class_id": 2,
+      "class_label": "desbalanceamento"
+    },
+    {
+      "node_id": 9,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 10,
+      "is_leaf": false,
+      "feature_index": 122,
+      "threshold_q15": 1000,
+      "left_child": 11,
+      "right_child": 14
+    },
+    {
+      "node_id": 11,
+      "is_leaf": false,
+      "feature_index": 9,
+      "threshold_q15": 140,
+      "left_child": 12,
+      "right_child": 13
+    },
+    {
+      "node_id": 12,
+      "is_leaf": true,
+      "class_id": 0,
+      "class_label": "operacao_normal"
+    },
+    {
+      "node_id": 13,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 14,
+      "is_leaf": false,
+      "feature_index": 56,
+      "threshold_q15": 18,
+      "left_child": 15,
+      "right_child": 16
+    },
+    {
+      "node_id": 15,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 16,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 17,
+      "is_leaf": false,
+      "feature_index": 9,
+      "threshold_q15": 56,
+      "left_child": 18,
+      "right_child": 25
+    },
+    {
+      "node_id": 18,
+      "is_leaf": false,
+      "feature_index": 8,
+      "threshold_q15": 44,
+      "left_child": 19,
+      "right_child": 22
+    },
+    {
+      "node_id": 19,
+      "is_leaf": false,
+      "feature_index": 56,
+      "threshold_q15": 32,
+      "left_child": 20,
+      "right_child": 21
+    },
+    {
+      "node_id": 20,
+      "is_leaf": true,
+      "class_id": 2,
+      "class_label": "desbalanceamento"
+    },
+    {
+      "node_id": 21,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 22,
+      "is_leaf": false,
+      "feature_index": 56,
+      "threshold_q15": 30,
+      "left_child": 23,
+      "right_child": 24
+    },
+    {
+      "node_id": 23,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 24,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 25,
+      "is_leaf": false,
+      "feature_index": 56,
+      "threshold_q15": 22,
+      "left_child": 26,
+      "right_child": 29
+    },
+    {
+      "node_id": 26,
+      "is_leaf": false,
+      "feature_index": 9,
+      "threshold_q15": 86,
+      "left_child": 27,
+      "right_child": 28
+    },
+    {
+      "node_id": 27,
+      "is_leaf": true,
+      "class_id": 2,
+      "class_label": "desbalanceamento"
+    },
+    {
+      "node_id": 28,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 29,
+      "is_leaf": false,
+      "feature_index": 9,
+      "threshold_q15": 76,
+      "left_child": 30,
+      "right_child": 31
+    },
+    {
+      "node_id": 30,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 31,
+      "is_leaf": true,
+      "class_id": 1,
+      "class_label": "desalinhamento"
+    },
+    {
+      "node_id": 32,
+      "is_leaf": false,
+      "feature_index": 102,
+      "threshold_q15": 510,
+      "left_child": 33,
+      "right_child": 34
+    },
+    {
+      "node_id": 33,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    },
+    {
+      "node_id": 34,
+      "is_leaf": true,
+      "class_id": 3,
+      "class_label": "desgaste_rolamento"
+    }
+  ]
+}
