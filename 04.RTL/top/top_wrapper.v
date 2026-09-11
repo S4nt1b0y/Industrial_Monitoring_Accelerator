@@ -20,11 +20,8 @@ wire       uart_valid;
 wire       frame_valid;
 wire       frame_ready;
 wire       frame_overflow;
-
-wire signed [N*DATA_WIDTH-1:0] acc_x_a;
-wire signed [N*DATA_WIDTH-1:0] acc_x_b;
-wire signed [N*DATA_WIDTH-1:0] acc_y_a;
-wire signed [N*DATA_WIDTH-1:0] acc_y_b;
+wire signed [N*DATA_WIDTH-1:0] sample_block;
+wire [1:0] frame_channel;
 
 wire ml_valid_i;
 wire ml_ready_o;
@@ -68,10 +65,8 @@ uart_frame_buffer #(
     .byte_valid_i(uart_valid),
     .frame_ready_i(frame_ready),
     .frame_valid_o(frame_valid),
-    .acc_x_a_o(acc_x_a),
-    .acc_x_b_o(acc_x_b),
-    .acc_y_a_o(acc_y_a),
-    .acc_y_b_o(acc_y_b),
+    .sample_block_o(sample_block),
+    .channel_o(frame_channel),
     .overflow_o(frame_overflow)
 );
 
@@ -81,10 +76,8 @@ ml_pipeline #(
 ) u_ml_pipeline (
     .clk(clk),
     .rst_n(rst_n),
-    .acc_x_a_i(acc_x_a),
-    .acc_x_b_i(acc_x_b),
-    .acc_y_a_i(acc_y_a),
-    .acc_y_b_i(acc_y_b),
+    .sample_block_i(sample_block),
+    .channel_i(frame_channel),
     .valid_i(ml_valid_i),
     .ready_o(ml_ready_o),
     .valid_o(ml_valid_o),

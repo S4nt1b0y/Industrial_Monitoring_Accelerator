@@ -11,14 +11,11 @@ reg [7:0] byte_i;
 reg byte_valid_i;
 reg frame_ready_i;
 wire frame_valid_o;
-wire signed [N*DATA_WIDTH-1:0] acc_x_a_o;
-wire signed [N*DATA_WIDTH-1:0] acc_x_b_o;
-wire signed [N*DATA_WIDTH-1:0] acc_y_a_o;
-wire signed [N*DATA_WIDTH-1:0] acc_y_b_o;
+wire signed [N*DATA_WIDTH-1:0] sample_block_o;
+wire [1:0] channel_o;
 wire overflow_o;
 
 integer failures;
-integer channel;
 integer sample;
 reg [15:0] expected;
 
@@ -32,26 +29,17 @@ uart_frame_buffer #(
     .byte_valid_i(byte_valid_i),
     .frame_ready_i(frame_ready_i),
     .frame_valid_o(frame_valid_o),
-    .acc_x_a_o(acc_x_a_o),
-    .acc_x_b_o(acc_x_b_o),
-    .acc_y_a_o(acc_y_a_o),
-    .acc_y_b_o(acc_y_b_o),
+    .sample_block_o(sample_block_o),
+    .channel_o(channel_o),
     .overflow_o(overflow_o)
 );
 
 always #5 clk = ~clk;
 
 function [DATA_WIDTH-1:0] get_sample;
-    input integer ch;
     input integer idx;
     begin
-        case (ch)
-            0: get_sample = acc_x_a_o[(idx+1)*DATA_WIDTH-1 -: DATA_WIDTH];
-            1: get_sample = acc_x_b_o[(idx+1)*DATA_WIDTH-1 -: DATA_WIDTH];
-            2: get_sample = acc_y_a_o[(idx+1)*DATA_WIDTH-1 -: DATA_WIDTH];
-            3: get_sample = acc_y_b_o[(idx+1)*DATA_WIDTH-1 -: DATA_WIDTH];
-            default: get_sample = {DATA_WIDTH{1'b0}};
-        endcase
+        get_sample = sample_block_o[(idx+1)*DATA_WIDTH-1 -: DATA_WIDTH];
     end
 endfunction
 
@@ -74,6 +62,52 @@ task send_sample;
     end
 endtask
 
+task send_block;
+    input integer channel;
+    begin
+        for (sample = 0; sample < N; sample = sample + 1) begin
+            send_sample((channel << 8) + sample);
+        end
+    end
+endtask
+
+task check_visible_block;
+    input integer channel;
+    begin
+        @(posedge clk);
+        #1;
+
+        if (frame_valid_o !== 1'b1) begin
+            $display("FAIL: frame_valid_o should be high for channel %0d", channel);
+            failures = failures + 1;
+        end
+
+        if (channel_o !== channel[1:0]) begin
+            $display("FAIL: expected visible channel %0d got %0d", channel, channel_o);
+            failures = failures + 1;
+        end
+
+        for (sample = 0; sample < N; sample = sample + 1) begin
+            expected = (channel << 8) + sample;
+            if (get_sample(sample) !== expected) begin
+                $display("FAIL: channel %0d sample %0d expected %h got %h",
+                         channel, sample, expected, get_sample(sample));
+                failures = failures + 1;
+            end
+        end
+    end
+endtask
+
+task accept_visible_block;
+    begin
+        @(negedge clk);
+        frame_ready_i = 1'b1;
+        @(posedge clk);
+        #1;
+        frame_ready_i = 1'b0;
+    end
+endtask
+
 initial begin
     clk = 1'b0;
     rst_n = 1'b0;
@@ -85,53 +119,37 @@ initial begin
     repeat (4) @(posedge clk);
     rst_n = 1'b1;
 
-    for (channel = 0; channel < 4; channel = channel + 1) begin
-        for (sample = 0; sample < N; sample = sample + 1) begin
-            send_sample((channel << 8) + sample);
-        end
-    end
+    send_block(0);
+    check_visible_block(0);
 
-    @(posedge clk);
-    #1;
+    send_block(1);
+    check_visible_block(0);
 
-    if (frame_valid_o !== 1'b1) begin
-        $display("FAIL: frame_valid_o should be held after 256 samples");
-        failures = failures + 1;
-    end
+    accept_visible_block();
+    check_visible_block(1);
 
-    for (channel = 0; channel < 4; channel = channel + 1) begin
-        for (sample = 0; sample < N; sample = sample + 1) begin
-            expected = (channel << 8) + sample;
-            if (get_sample(channel, sample) !== expected) begin
-                $display("FAIL: channel %0d sample %0d expected %h got %h",
-                         channel, sample, expected, get_sample(channel, sample));
-                failures = failures + 1;
-            end
-        end
-    end
+    send_block(2);
+    check_visible_block(1);
 
     send_byte(8'hAA);
     @(posedge clk);
     #1;
 
     if (overflow_o !== 1'b1) begin
-        $display("FAIL: overflow_o should assert when bytes arrive with a pending frame");
+        $display("FAIL: overflow_o should assert when both ping-pong banks are occupied");
         failures = failures + 1;
     end
 
-    @(negedge clk);
-    frame_ready_i = 1'b1;
-    @(posedge clk);
-    #1;
-    frame_ready_i = 1'b0;
+    accept_visible_block();
+    accept_visible_block();
 
     if (frame_valid_o !== 1'b0) begin
-        $display("FAIL: frame_valid_o should clear after frame_ready_i");
+        $display("FAIL: frame_valid_o should clear after both pending blocks are accepted");
         failures = failures + 1;
     end
 
     if (overflow_o !== 1'b0) begin
-        $display("FAIL: overflow_o should clear after frame is accepted");
+        $display("FAIL: overflow_o should clear after accepting a pending block");
         failures = failures + 1;
     end
 

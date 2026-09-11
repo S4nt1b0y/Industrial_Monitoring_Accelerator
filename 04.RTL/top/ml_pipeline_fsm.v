@@ -1,11 +1,12 @@
 /*
  * Module: ml_pipeline_fsm
- * Control FSM for the serialized ML feature pipeline.
+ * Control FSM for one 64-sample channel block at a time.
  */
 module ml_pipeline_fsm (
     input  wire       clk,
     input  wire       rst_n,
     input  wire       valid_i,
+    input  wire [1:0] channel_i,
     input  wire       fft_done_i,
     input  wire       mdc_done_i,
     input  wire       classifier_valid_i,
@@ -16,8 +17,7 @@ module ml_pipeline_fsm (
     output reg        store_fft_o,
     output reg        store_mdc_o,
     output reg        classifier_start_o,
-    output reg [1:0]  channel_sel_o,
-    output reg [2:0]  stage_o
+    output reg [1:0]  channel_sel_o
 );
 
 localparam [2:0] STAGE_IDLE        = 3'd0;
@@ -58,10 +58,10 @@ always @(*) begin
 
     case (state)
         S_IDLE: begin
-            channel_sel_next = CH_X_A;
             if (valid_i) begin
-                capture_o  = 1'b1;
-                state_next = S_START_FFT;
+                capture_o        = 1'b1;
+                channel_sel_next = channel_i;
+                state_next       = S_START_FFT;
             end
         end
 
@@ -88,8 +88,7 @@ always @(*) begin
                 if (channel_sel_o == CH_Y_B) begin
                     state_next = S_CLASSIFY;
                 end else begin
-                    channel_sel_next = channel_sel_o + 2'd1;
-                    state_next       = S_START_FFT;
+                    state_next = S_IDLE;
                 end
             end
         end
@@ -108,23 +107,6 @@ always @(*) begin
         default: begin
             state_next       = S_IDLE;
             channel_sel_next = CH_X_A;
-        end
-    endcase
-end
-
-always @(*) begin
-    case (state)
-        S_IDLE:          stage_o = STAGE_IDLE;
-        S_CLASSIFY,
-        S_WAIT_CLASSIFY: stage_o = STAGE_CLASSIFY;
-        default: begin
-            case (channel_sel_o)
-                CH_X_A:  stage_o = STAGE_PROCESS_X_A;
-                CH_X_B:  stage_o = STAGE_PROCESS_X_B;
-                CH_Y_A:  stage_o = STAGE_PROCESS_Y_A;
-                CH_Y_B:  stage_o = STAGE_PROCESS_Y_B;
-                default: stage_o = STAGE_IDLE;
-            endcase
         end
     endcase
 end

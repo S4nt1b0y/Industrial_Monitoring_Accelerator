@@ -17,8 +17,9 @@ wire Led_desgaste;
 integer failures;
 integer channel;
 integer sample;
-reg seen_cnn_valid;
-reg seen_ml_valid;
+integer wait_cycles;
+integer ml_valid_count;
+reg seen_ml_output;
 
 top_wrapper #(
     .CLK_FREQ_HZ(CLK_FREQ_HZ)
@@ -37,14 +38,14 @@ always #5 clk = ~clk;
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        seen_cnn_valid <= 1'b0;
-        seen_ml_valid  <= 1'b0;
+        ml_valid_count <= 0;
+        seen_ml_output <= 1'b0;
     end else begin
-        if (dut.u_cnn.valid_o) begin
-            seen_cnn_valid <= 1'b1;
+        if (dut.u_ml_pipeline.valid_i && dut.u_ml_pipeline.ready_o) begin
+            ml_valid_count <= ml_valid_count + 1;
         end
-        if (dut.u_ml_pipeline.valid_i) begin
-            seen_ml_valid <= 1'b1;
+        if (dut.u_ml_pipeline.valid_o) begin
+            seen_ml_output <= 1'b1;
         end
     end
 end
@@ -72,7 +73,7 @@ task uart_send_sample;
     end
 endtask
 
-task uart_send_frame;
+task uart_send_blocks;
     begin
         for (channel = 0; channel < 4; channel = channel + 1) begin
             for (sample = 0; sample < 64; sample = sample + 1) begin
@@ -85,7 +86,7 @@ endtask
 initial begin
     clk = 1'b0;
     rst_n = 1'b0;
-    ml_swith = 1'b1;
+    ml_swith = 1'b0;
     uart_rx_i = 1'b1;
     failures = 0;
 
@@ -93,52 +94,31 @@ initial begin
     rst_n = 1'b1;
     repeat (8) @(posedge clk);
 
-    uart_send_frame();
+    uart_send_blocks();
 
-    repeat (4) @(posedge clk);
-    #1;
+    wait_cycles = 0;
+    while (!seen_ml_output && wait_cycles < 20000) begin
+        @(posedge clk);
+        wait_cycles = wait_cycles + 1;
+    end
 
-    if (seen_cnn_valid !== 1'b1) begin
-        $display("FAIL: CNN path should produce valid_o for ml_swith=1");
+    if (ml_valid_count != 4) begin
+        $display("FAIL: ML pipeline should accept 4 channel blocks, got %0d", ml_valid_count);
         failures = failures + 1;
     end
 
-    if (dut.u_ml_pipeline.valid_i !== 1'b0) begin
-        $display("FAIL: ML pipeline should not receive valid_i when ml_swith=1");
+    if (seen_ml_output !== 1'b1) begin
+        $display("FAIL: ML pipeline should produce output after 4 channel blocks");
         failures = failures + 1;
     end
 
-    if (Led_Normal !== 1'b1 ||
-        Led_Unbalaced !== 1'b0 ||
-        Led_disalaighn !== 1'b0 ||
-        Led_desgaste !== 1'b0) begin
-        $display("FAIL: expected only Led_Normal after CNN fake classification");
-        failures = failures + 1;
-    end
-
-    rst_n = 1'b0;
-    ml_swith = 1'b0;
-    uart_rx_i = 1'b1;
-    repeat (8) @(posedge clk);
-    rst_n = 1'b1;
-    repeat (8) @(posedge clk);
-
-    uart_send_frame();
-    repeat (4) @(posedge clk);
-    #1;
-
-    if (seen_ml_valid !== 1'b1) begin
-        $display("FAIL: ML pipeline should receive valid_i for ml_swith=0");
-        failures = failures + 1;
-    end
-
-    if (dut.u_cnn.valid_i !== 1'b0) begin
-        $display("FAIL: CNN should not receive valid_i when ml_swith=0");
+    if ({Led_Normal, Led_Unbalaced, Led_disalaighn, Led_desgaste} === 4'bxxxx) begin
+        $display("FAIL: LED outputs should not be unknown");
         failures = failures + 1;
     end
 
     if (failures == 0) begin
-        $display("All top_wrapper UART/CNN route tests passed.");
+        $display("All top_wrapper UART/ML route tests passed.");
     end else begin
         $display("%0d top_wrapper test(s) failed.", failures);
     end

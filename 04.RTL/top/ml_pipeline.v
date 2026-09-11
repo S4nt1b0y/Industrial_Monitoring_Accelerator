@@ -14,10 +14,8 @@ module ml_pipeline #(
 )(
     input  wire                            clk,
     input  wire                            rst_n,
-    input  wire signed [N*DATA_WIDTH-1:0] acc_x_a_i,
-    input  wire signed [N*DATA_WIDTH-1:0] acc_x_b_i,
-    input  wire signed [N*DATA_WIDTH-1:0] acc_y_a_i,
-    input  wire signed [N*DATA_WIDTH-1:0] acc_y_b_i,
+    input  wire signed [N*DATA_WIDTH-1:0] sample_block_i,
+    input  wire [1:0]                     channel_i,
     input  wire                            valid_i,
     output wire                            ready_o,
     output wire                            valid_o,
@@ -28,14 +26,9 @@ localparam FEATURE_WIDTH = DATA_WIDTH * NUM_FEATURES;
 localparam CHANNEL_COUNT = 4;
 localparam FFT_FEATURES  = CHANNEL_COUNT * FFT_BIN_COUNT;
 localparam [1:0] CH_X_A  = 2'd0;
-localparam [1:0] CH_X_B  = 2'd1;
-localparam [1:0] CH_Y_A  = 2'd2;
 localparam [1:0] CH_Y_B  = 2'd3;
 
-reg signed [N*DATA_WIDTH-1:0] acc_x_a_reg;
-reg signed [N*DATA_WIDTH-1:0] acc_x_b_reg;
-reg signed [N*DATA_WIDTH-1:0] acc_y_a_reg;
-reg signed [N*DATA_WIDTH-1:0] acc_y_b_reg;
+reg signed [N*DATA_WIDTH-1:0] sample_block_reg;
 reg [FEATURE_WIDTH-1:0]       features;
 
 wire       fsm_capture;
@@ -49,7 +42,6 @@ wire       store_mdc;
 wire       classifier_start;
 wire       classifier_valid;
 wire [1:0] channel_sel;
-wire [2:0] stage;
 
 reg signed [N*DATA_WIDTH-1:0]  fft_in_re;
 wire signed [N*DATA_WIDTH-1:0] fft_in_im;
@@ -75,13 +67,7 @@ reg [M-1:0] top_idx_2;
 assign fft_in_im = {N*DATA_WIDTH{1'b0}};
 
 always @(*) begin
-    case (channel_sel)
-        CH_X_A:  fft_in_re = acc_x_a_reg;
-        CH_X_B:  fft_in_re = acc_x_b_reg;
-        CH_Y_A:  fft_in_re = acc_y_a_reg;
-        CH_Y_B:  fft_in_re = acc_y_b_reg;
-        default: fft_in_re = {N*DATA_WIDTH{1'b0}};
-    endcase
+    fft_in_re = sample_block_reg;
 end
 
 function [DATA_WIDTH-1:0] abs_signed;
@@ -178,21 +164,17 @@ endtask
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-        acc_x_a_reg <= {N*DATA_WIDTH{1'b0}};
-        acc_x_b_reg <= {N*DATA_WIDTH{1'b0}};
-        acc_y_a_reg <= {N*DATA_WIDTH{1'b0}};
-        acc_y_b_reg <= {N*DATA_WIDTH{1'b0}};
-        features    <= {FEATURE_WIDTH{1'b0}};
-        peak_0      <= {M{1'b0}};
-        peak_1      <= {M{1'b0}};
-        peak_2      <= {M{1'b0}};
+        sample_block_reg <= {N*DATA_WIDTH{1'b0}};
+        features         <= {FEATURE_WIDTH{1'b0}};
+        peak_0           <= {M{1'b0}};
+        peak_1           <= {M{1'b0}};
+        peak_2           <= {M{1'b0}};
     end else begin
         if (fsm_capture) begin
-            acc_x_a_reg <= acc_x_a_i;
-            acc_x_b_reg <= acc_x_b_i;
-            acc_y_a_reg <= acc_y_a_i;
-            acc_y_b_reg <= acc_y_b_i;
-            features    <= {FEATURE_WIDTH{1'b0}};
+            sample_block_reg <= sample_block_i;
+            if (channel_i == CH_X_A) begin
+                features <= {FEATURE_WIDTH{1'b0}};
+            end
         end
 
         if (store_fft) begin
@@ -227,6 +209,7 @@ ml_pipeline_fsm u_fsm (
     .clk(clk),
     .rst_n(rst_n),
     .valid_i(valid_i),
+    .channel_i(channel_i),
     .fft_done_i(fft_done),
     .mdc_done_i(mdc_done),
     .classifier_valid_i(classifier_valid),
@@ -237,8 +220,7 @@ ml_pipeline_fsm u_fsm (
     .store_fft_o(store_fft),
     .store_mdc_o(store_mdc),
     .classifier_start_o(classifier_start),
-    .channel_sel_o(channel_sel),
-    .stage_o(stage)
+    .channel_sel_o(channel_sel)
 );
 
 fftu_dif #(
