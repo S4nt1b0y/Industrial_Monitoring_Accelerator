@@ -3,15 +3,36 @@ module top_wrapper #(
     parameter N           = 64,
     parameter CLK_FREQ_HZ = 50000000
 )(
-    input  wire clk,
-    input  wire rst_n,
-    input  wire ml_swith,
-    input  wire uart_rx_i,
-    output reg Led_Normal,
-    output reg Led_Unbalaced,
-    output reg Led_disalaighn,
-    output reg Led_desgaste
+    input  wire        CLOCK_50,
+    input  wire [3:0]  KEY,
+    input  wire [9:0]  SW,
+
+    // GPIO para RX do CP2102
+    input  wire        GPIO_0_0,
+
+    output wire [9:0]  LEDR
 );
+
+//------------------------------------------------------------------
+// Mapeamento dos sinais da placa
+//------------------------------------------------------------------
+wire clk;
+wire rst_n;
+wire ml_switch;
+wire uart_rx_i;
+
+assign clk       = CLOCK_50;
+assign rst_n     = KEY[0];      // KEY é ativo em nível baixo
+assign ml_switch = SW[0];
+assign uart_rx_i = GPIO_0_0;
+
+//------------------------------------------------------------------
+// Sinais internos dos LEDs
+//------------------------------------------------------------------
+reg Led_Normal;
+reg Led_Unbalaced;
+reg Led_disalaighn;
+reg Led_desgaste;
 
 localparam UART_BAUD_RATE = 9600;
 
@@ -119,5 +140,12 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
+
+assign LEDR[0] = Led_Normal;
+assign LEDR[1] = Led_Unbalaced;
+assign LEDR[2] = Led_disalaighn;
+assign LEDR[3] = Led_desgaste;
+
+assign LEDR[9:4] = 6'b0;
 
 endmodule

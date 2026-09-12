@@ -1,49 +1,78 @@
 module twiddle_lut #(
-    parameter W    = 16,   // largura da palavra (Q1.15)
-    parameter AW   = 5,    // largura do indice k (log2(HALF))
-    parameter HALF = 32    // N/2, numero de entradas na LUT
+    parameter W    = 16,
+    parameter AW   = 5,
+    parameter HALF = 32
 )(
-    input  wire [AW-1:0]        k,
-    output reg  signed [W-1:0]  w_re,
-    output reg  signed [W-1:0]  w_im
+    input  wire                  clk,
+    input  wire [AW-1:0]         k,
+    output wire signed [W-1:0]   w_re,
+    output wire signed [W-1:0]   w_im
 );
 
-    always @(*) begin
-        case (k)
-            5'd0 : begin w_re = 16'sh7FFF; w_im = 16'sh0000; end
-            5'd1 : begin w_re = 16'sh7F62; w_im = 16'shF374; end
-            5'd2 : begin w_re = 16'sh7D8A; w_im = 16'shE707; end
-            5'd3 : begin w_re = 16'sh7A7D; w_im = 16'shDAD8; end
-            5'd4 : begin w_re = 16'sh7642; w_im = 16'shCF04; end
-            5'd5 : begin w_re = 16'sh70E3; w_im = 16'shC3A9; end
-            5'd6 : begin w_re = 16'sh6A6E; w_im = 16'shB8E3; end
-            5'd7 : begin w_re = 16'sh62F2; w_im = 16'shAECC; end
-            5'd8 : begin w_re = 16'sh5A82; w_im = 16'shA57E; end
-            5'd9 : begin w_re = 16'sh5134; w_im = 16'sh9D0E; end
-            5'd10: begin w_re = 16'sh471D; w_im = 16'sh9592; end
-            5'd11: begin w_re = 16'sh3C57; w_im = 16'sh8F1D; end
-            5'd12: begin w_re = 16'sh30FC; w_im = 16'sh89BE; end
-            5'd13: begin w_re = 16'sh2528; w_im = 16'sh8583; end
-            5'd14: begin w_re = 16'sh18F9; w_im = 16'sh8276; end
-            5'd15: begin w_re = 16'sh0C8C; w_im = 16'sh809E; end
-            5'd16: begin w_re = 16'sh0000; w_im = 16'sh8000; end
-            5'd17: begin w_re = 16'shF374; w_im = 16'sh809E; end
-            5'd18: begin w_re = 16'shE707; w_im = 16'sh8276; end
-            5'd19: begin w_re = 16'shDAD8; w_im = 16'sh8583; end
-            5'd20: begin w_re = 16'shCF04; w_im = 16'sh89BE; end
-            5'd21: begin w_re = 16'shC3A9; w_im = 16'sh8F1D; end
-            5'd22: begin w_re = 16'shB8E3; w_im = 16'sh9592; end
-            5'd23: begin w_re = 16'shAECC; w_im = 16'sh9D0E; end
-            5'd24: begin w_re = 16'shA57E; w_im = 16'shA57E; end
-            5'd25: begin w_re = 16'sh9D0E; w_im = 16'shAECC; end
-            5'd26: begin w_re = 16'sh9592; w_im = 16'shB8E3; end
-            5'd27: begin w_re = 16'sh8F1D; w_im = 16'shC3A9; end
-            5'd28: begin w_re = 16'sh89BE; w_im = 16'shCF04; end
-            5'd29: begin w_re = 16'sh8583; w_im = 16'shDAD8; end
-            5'd30: begin w_re = 16'sh8276; w_im = 16'shE707; end
-            5'd31: begin w_re = 16'sh809E; w_im = 16'shF374; end
-            default: begin w_re = 16'sh0000; w_im = 16'sh0000; end
-        endcase
-    end
+    // ============================================================
+    // ROM:
+    //
+    //   32 palavras
+    //   32 bits por palavra
+    //
+    //   [31:16] = W_RE
+    //   [15: 0] = W_IM
+    //
+    // Implementação física desejada:
+    //
+    //   Cyclone V -> M10K
+    //
+    // Leitura síncrona:
+    //
+    //   k(t) -> M10K -> data(t+1)
+    // ============================================================
+
+    wire [31:0] rom_data;
+
+    altsyncram #(
+        .operation_mode("ROM"),
+
+        .width_a(32),
+        .widthad_a(AW),
+        .numwords_a(HALF),
+
+        .outdata_reg_a("CLOCK0"),
+
+        .address_aclr_a("NONE"),
+        .outdata_aclr_a("NONE"),
+
+        .clock_enable_input_a("BYPASS"),
+        .clock_enable_output_a("BYPASS"),
+
+        .ram_block_type("M10K"),
+
+        .init_file("twiddle.mif"),
+        .init_file_layout("PORT_A"),
+
+        .intended_device_family("Cyclone V"),
+
+        .lpm_type("altsyncram")
+    ) twiddle_rom (
+        .clock0(clk),
+        .address_a(k),
+        .q_a(rom_data),
+
+        .aclr0(1'b0),
+        .aclr1(1'b0),
+
+        .addressstall_a(1'b0),
+        .clocken0(1'b1),
+        .clocken1(1'b1),
+
+        .eccstatus(),
+        .rden_a(1'b1)
+    );
+
+    // ============================================================
+    // Separação real / imaginário
+    // ============================================================
+
+    assign w_re = rom_data[31:16];
+    assign w_im = rom_data[15:0];
 
 endmodule
