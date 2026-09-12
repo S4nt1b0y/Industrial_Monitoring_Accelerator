@@ -42,8 +42,6 @@ reg Led_Unbalaced;
 reg Led_disalaighn;
 reg Led_desgaste;
 
-localparam UART_BAUD_RATE = 9600;
-
 wire [7:0] uart_data;
 wire       uart_valid;
 wire       frame_valid;
@@ -65,12 +63,12 @@ wire [1:0] cnn_class_o;
 wire selected_valid;
 wire [1:0] selected_class;
 
-assign ml_valid_i  = frame_valid && !ml_swith;
-assign cnn_valid_i = frame_valid &&  ml_swith;
-assign frame_ready = ml_swith ? cnn_ready_o : ml_ready_o;
+assign ml_valid_i  = frame_valid && !ml_switch;
+assign cnn_valid_i = frame_valid &&  ml_switch;
+assign frame_ready = ml_switch ? cnn_ready_o : ml_ready_o;
 
-assign selected_valid = ml_swith ? cnn_valid_o : ml_valid_o;
-assign selected_class = ml_swith ? cnn_class_o : ml_class_o;
+assign selected_valid = ml_switch ? cnn_valid_o : ml_valid_o;
+assign selected_class = ml_switch ? cnn_class_o : ml_class_o;
 
 uart_rx #(
     .CLK_FREQ_HZ(CLK_FREQ_HZ),

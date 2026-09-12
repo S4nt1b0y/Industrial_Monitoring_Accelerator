@@ -36,13 +36,13 @@ module cnn #(
     /* $readmemh resolves these against the tool's working directory, so
      * the defaults assume it is the project root. A testbench run from
      * its own directory overrides them. */
-    parameter KERNEL_FILE = "04.RTL/cnn/weights/conv1_kernels.hex",
-    parameter CBIAS_FILE  = "04.RTL/cnn/weights/conv1_bias.hex",
-    parameter DBIAS_FILE  = "04.RTL/cnn/weights/dense_b.hex",
-    parameter DW0_FILE    = "04.RTL/cnn/weights/dense_w_c0.hex",
-    parameter DW1_FILE    = "04.RTL/cnn/weights/dense_w_c1.hex",
-    parameter DW2_FILE    = "04.RTL/cnn/weights/dense_w_c2.hex",
-    parameter DW3_FILE    = "04.RTL/cnn/weights/dense_w_c3.hex"
+    parameter KERNEL_FILE = "./weights/conv1_kernels.hex",
+    parameter CBIAS_FILE  = "./weights/conv1_bias.hex",
+    parameter DBIAS_FILE  = "./weights/dense_b.hex",
+    parameter DW0_FILE    = "./weights/dense_w_c0.hex",
+    parameter DW1_FILE    = "./weights/dense_w_c1.hex",
+    parameter DW2_FILE    = "./weights/dense_w_c2.hex",
+    parameter DW3_FILE    = "./weights/dense_w_c3.hex"
 ) (
     input  wire clk,
     input  wire rst_n,
