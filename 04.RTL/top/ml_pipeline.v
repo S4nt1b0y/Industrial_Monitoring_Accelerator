@@ -54,6 +54,11 @@ reg [M-1:0]  peak_2;
 wire [M-1:0] mdc_k0;
 wire [31:0]  mdc_f0;
 
+// Variáveis para controle do loop serializado
+reg [5:0]  bin_cnt;
+reg        storing_fft;
+reg        store_fft_done_reg; // Sinal de conclusão interno
+
 integer i;
 integer insert_pos;
 reg [DATA_WIDTH-1:0] mag_i;
@@ -108,26 +113,26 @@ function [DATA_WIDTH-1:0] saturate_f0;
     end
 endfunction
 
-// PENSO QUE DAQUI ATÉ LINA 225 mais ou menos será o modulo dedicado de obtenção de 
+// Uso de atribuições não-bloqueantes (<=) para evitar latches
 task update_top3;
     input [DATA_WIDTH-1:0] mag;
     input [M-1:0] idx;
     begin
         if ((mag > top_mag_0) || ((mag == top_mag_0) && (idx < top_idx_0))) begin
-            top_mag_2 = top_mag_1;
-            top_idx_2 = top_idx_1;
-            top_mag_1 = top_mag_0;
-            top_idx_1 = top_idx_0;
-            top_mag_0 = mag;
-            top_idx_0 = idx;
+            top_mag_2 <= top_mag_1;
+            top_idx_2 <= top_idx_1;
+            top_mag_1 <= top_mag_0;
+            top_idx_1 <= top_idx_0;
+            top_mag_0 <= mag;
+            top_idx_0 <= idx;
         end else if ((mag > top_mag_1) || ((mag == top_mag_1) && (idx < top_idx_1))) begin
-            top_mag_2 = top_mag_1;
-            top_idx_2 = top_idx_1;
-            top_mag_1 = mag;
-            top_idx_1 = idx;
+            top_mag_2 <= top_mag_1;
+            top_idx_2 <= top_idx_1;
+            top_mag_1 <= mag;
+            top_idx_1 <= idx;
         end else if ((mag > top_mag_2) || ((mag == top_mag_2) && (idx < top_idx_2))) begin
-            top_mag_2 = mag;
-            top_idx_2 = idx;
+            top_mag_2 <= mag;
+            top_idx_2 <= idx;
         end
     end
 endtask
@@ -169,7 +174,13 @@ always @(posedge clk or negedge rst_n) begin
         peak_0           <= {M{1'b0}};
         peak_1           <= {M{1'b0}};
         peak_2           <= {M{1'b0}};
+        bin_cnt          <= 6'd0;
+        storing_fft      <= 1'b0;
+        store_fft_done_reg <= 1'b0;
     end else begin
+        // Reseta o pulso de done a cada ciclo
+        store_fft_done_reg <= 1'b0;
+
         if (fsm_capture) begin
             sample_block_reg <= sample_block_i;
             if (channel_i == CH_X_A) begin
@@ -177,24 +188,34 @@ always @(posedge clk or negedge rst_n) begin
             end
         end
 
-        if (store_fft) begin
-            top_mag_0 = {DATA_WIDTH{1'b0}};
-            top_mag_1 = {DATA_WIDTH{1'b0}};
-            top_mag_2 = {DATA_WIDTH{1'b0}};
-            top_idx_0 = {M{1'b1}};
-            top_idx_1 = {M{1'b1}};
-            top_idx_2 = {M{1'b1}};
+        // Inicia o processo de armazenamento do FFT
+        if (store_fft && !storing_fft) begin
+            storing_fft <= 1'b1;
+            bin_cnt     <= 6'd0;
+            top_mag_0   <= {DATA_WIDTH{1'b0}};
+            top_mag_1   <= {DATA_WIDTH{1'b0}};
+            top_mag_2   <= {DATA_WIDTH{1'b0}};
+            top_idx_0   <= {M{1'b1}};
+            top_idx_1   <= {M{1'b1}};
+            top_idx_2   <= {M{1'b1}};
+        end 
+        // Processa um bin por ciclo
+        else if (storing_fft) begin
+            mag_i = fft_magnitude(
+                fft_out_re[(bin_cnt+1)*DATA_WIDTH-1 -: DATA_WIDTH],
+                fft_out_im[(bin_cnt+1)*DATA_WIDTH-1 -: DATA_WIDTH]
+            );
+            features[((channel_sel * FFT_BIN_COUNT + bin_cnt) * DATA_WIDTH) +: DATA_WIDTH] <= mag_i;
+            
+            update_top3(mag_i, bin_cnt[M-1:0]);
 
-            for (i = 0; i < FFT_BIN_COUNT; i = i + 1) begin
-                mag_i = fft_magnitude(
-                    fft_out_re[(i+1)*DATA_WIDTH-1 -: DATA_WIDTH],
-                    fft_out_im[(i+1)*DATA_WIDTH-1 -: DATA_WIDTH]
-                );
-                features[((channel_sel * FFT_BIN_COUNT + i) * DATA_WIDTH) +: DATA_WIDTH] <= mag_i;
-                update_top3(mag_i, i[M-1:0]);
+            if (bin_cnt == FFT_BIN_COUNT - 1) begin
+                storing_fft <= 1'b0;
+                store_fft_done_reg <= 1'b1; // Pulso de conclusão
+                sort_three_indices(top_idx_0, top_idx_1, top_idx_2, peak_0, peak_1, peak_2);
+            end else begin
+                bin_cnt <= bin_cnt + 1'b1;
             end
-
-            sort_three_indices(top_idx_0, top_idx_1, top_idx_2, peak_0, peak_1, peak_2);
         end
 
         if (store_mdc) begin
@@ -220,7 +241,8 @@ ml_pipeline_fsm u_fsm (
     .store_fft_o(store_fft),
     .store_mdc_o(store_mdc),
     .classifier_start_o(classifier_start),
-    .channel_sel_o(channel_sel)
+    .channel_sel_o(channel_sel),
+    .store_fft_done_i(store_fft_done_reg) // CORREÇÃO: Conecta o sinal de conclusão
 );
 
 fftu_dif #(

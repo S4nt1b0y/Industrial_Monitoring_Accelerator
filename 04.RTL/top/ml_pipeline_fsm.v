@@ -10,6 +10,7 @@ module ml_pipeline_fsm (
     input  wire       fft_done_i,
     input  wire       mdc_done_i,
     input  wire       classifier_valid_i,
+    input  wire       store_fft_done_i, // NOVO: Vem do módulo ml_pipeline
     output wire       ready_o,
     output reg        capture_o,
     output reg        fft_start_o,
@@ -32,13 +33,14 @@ localparam [1:0] CH_X_B = 2'd1;
 localparam [1:0] CH_Y_A = 2'd2;
 localparam [1:0] CH_Y_B = 2'd3;
 
-localparam [3:0] S_IDLE          = 4'd0;
-localparam [3:0] S_START_FFT     = 4'd1;
-localparam [3:0] S_WAIT_FFT      = 4'd2;
-localparam [3:0] S_START_MDC     = 4'd3;
-localparam [3:0] S_WAIT_MDC      = 4'd4;
-localparam [3:0] S_CLASSIFY      = 4'd5;
-localparam [3:0] S_WAIT_CLASSIFY = 4'd6;
+localparam [3:0] S_IDLE            = 4'd0;
+localparam [3:0] S_START_FFT       = 4'd1;
+localparam [3:0] S_WAIT_FFT        = 4'd2;
+localparam [3:0] S_WAIT_STORE_FFT  = 4'd7; // NOVO ESTADO
+localparam [3:0] S_START_MDC       = 4'd3;
+localparam [3:0] S_WAIT_MDC        = 4'd4;
+localparam [3:0] S_CLASSIFY        = 4'd5;
+localparam [3:0] S_WAIT_CLASSIFY   = 4'd6;
 
 reg [3:0] state;
 reg [3:0] state_next;
@@ -72,8 +74,15 @@ always @(*) begin
 
         S_WAIT_FFT: begin
             if (fft_done_i) begin
-                store_fft_o = 1'b1;
-                state_next  = S_START_MDC;
+                store_fft_o = 1'b1; // Pulso de 1 ciclo para iniciar o armazenamento
+                state_next  = S_WAIT_STORE_FFT; // Vai para o novo estado
+            end
+        end
+
+        // NOVO ESTADO: Espera o processamento serializado dos 33 bins terminar
+        S_WAIT_STORE_FFT: begin
+            if (store_fft_done_i) begin
+                state_next = S_START_MDC;
             end
         end
 
