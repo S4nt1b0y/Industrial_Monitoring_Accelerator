@@ -116,19 +116,19 @@ ml_pipeline #(
 // frame buffer only ever exposes one channel block at a time. The CNN
 // keeps ready_o asserted for channels 2 and 3 as well, which it
 // discards, so ingestion never stalls on them.
-cnn #(
-    .DATA_WIDTH(DATA_WIDTH),
-    .N(N)
-) u_cnn (
-    .clk(clk),
-    .rst_n(rst_n),
-    .sample_block_i(sample_block),
-    .channel_i(frame_channel),
-    .valid_i(cnn_valid_i),
-    .ready_o(cnn_ready_o),
-    .valid_o(cnn_valid_o),
-    .class_o(cnn_class_o)
-);
+//cnn #(
+//    .DATA_WIDTH(DATA_WIDTH),
+//    .N(N)
+//) u_cnn (
+//    .clk(clk),
+//    .rst_n(rst_n),
+//    .sample_block_i(sample_block),
+//    .channel_i(frame_channel),
+//    .valid_i(cnn_valid_i),
+//    .ready_o(cnn_ready_o),
+//    .valid_o(cnn_valid_o),
+//    .class_o(cnn_class_o)
+//);
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
