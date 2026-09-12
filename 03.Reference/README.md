@@ -22,6 +22,7 @@ The ML reference flow is split into three layers:
 | `ml_classifier.py` | Pure reusable classifier API. Receives precomputed fixed-point feature matrices and labels. |
 | `ml_pipeline.py` | Top processing chain. Receives four vibration channels, keeps LMS off by default, applies FFT and MDC, computes `n_features`, and calls `MLClassifier`. |
 | `evaluate_datasets.py` | Dataset/logistics top. Reads Parquet datasets, balances windows by class, runs the fixed LMS-off/MDC-on pipeline, tests streaming classification, and writes comparison metrics. |
+| `uart_tx_parquet.py` | Sends one 64-sample Q1.15 Parquet window to the FPGA UART input. See `README_uart_fpga.md`. |
 
 ### `MLClassifier`
 
