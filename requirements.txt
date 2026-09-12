@@ -5,3 +5,4 @@ nptdms
 pyarrow
 scikit-learn
 joblib
+pyserial
