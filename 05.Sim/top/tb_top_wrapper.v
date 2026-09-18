@@ -21,17 +21,26 @@ integer wait_cycles;
 integer ml_valid_count;
 reg seen_ml_output;
 
+/* Board ports of top_wrapper mapped to the signal names used in this
+ * test. KEY is active low, like rst_n. */
+wire [3:0] KEY = {3'b111, rst_n};
+wire [9:0] SW  = {9'b0, ml_swith};
+wire [9:0] LEDR;
+
+assign Led_Normal    = LEDR[0];
+assign Led_Unbalaced = LEDR[1];
+assign Led_disalaighn = LEDR[2];
+assign Led_desgaste  = LEDR[3];
+
 top_wrapper #(
-    .CLK_FREQ_HZ(CLK_FREQ_HZ)
+    .CLK_FREQ_HZ(CLK_FREQ_HZ),
+    .CNN_WEIGHTS_DIR("../../04.RTL/cnn/weights/")
 ) dut (
-    .clk(clk),
-    .rst_n(rst_n),
-    .ml_swith(ml_swith),
-    .uart_rx_i(uart_rx_i),
-    .Led_Normal(Led_Normal),
-    .Led_Unbalaced(Led_Unbalaced),
-    .Led_disalaighn(Led_disalaighn),
-    .Led_desgaste(Led_desgaste)
+    .CLOCK_50(clk),
+    .KEY(KEY),
+    .SW(SW),
+    .GPIO_0_0(uart_rx_i),
+    .LEDR(LEDR)
 );
 
 always #5 clk = ~clk;

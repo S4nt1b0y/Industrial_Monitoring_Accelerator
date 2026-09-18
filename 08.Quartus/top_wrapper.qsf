@@ -1,0 +1,161 @@
+# -------------------------------------------------------------------------- #
+#
+# Copyright (C) 2020  Intel Corporation. All rights reserved.
+# Your use of Intel Corporation's design tools, logic functions 
+# and other software and tools, and any partner logic 
+# functions, and any output files from any of the foregoing 
+# (including device programming or simulation files), and any 
+# associated documentation or information are expressly subject 
+# to the terms and conditions of the Intel Program License 
+# Subscription Agreement, the Intel Quartus Prime License Agreement,
+# the Intel FPGA IP License Agreement, or other applicable license
+# agreement, including, without limitation, that your use is for
+# the sole purpose of programming logic devices manufactured by
+# Intel and sold by Intel or its authorized distributors.  Please
+# refer to the applicable agreement for further details, at
+# https://fpgasoftware.intel.com/eula.
+#
+# -------------------------------------------------------------------------- #
+#
+# Quartus Prime
+# Version 20.1.0 Build 711 06/05/2020 SJ Lite Edition
+# Date created = 01:30:51  September 13, 2026
+#
+# -------------------------------------------------------------------------- #
+#
+# Notes:
+#
+# 1) The default values for assignments are stored in the file:
+#		top_wrapper_assignment_defaults.qdf
+#    If this file doesn't exist, see file:
+#		assignment_defaults.qdf
+#
+# 2) Altera recommends that you do not modify this file. This
+#    file is updated automatically by the Quartus Prime software
+#    and any changes you make may be lost or overwritten.
+#
+# -------------------------------------------------------------------------- #
+
+
+set_global_assignment -name FAMILY "Cyclone V"
+set_global_assignment -name DEVICE 5CEBA4F23C7
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION 20.1.0
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "01:30:51  SEPTEMBER 13, 2026"
+set_global_assignment -name LAST_QUARTUS_VERSION "20.1.0 Lite Edition"
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
+set_global_assignment -name SDC_FILE top_wrapper.sdc
+set_global_assignment -name VERILOG_FILE ../04.RTL/uart/uart_rx.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/uart/uart_frame_buffer.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/fft/twiddle_lut.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/fft/addr_gen.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/fft/butterfly_dif.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/fft/fftu_dif.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/mdc/mdc.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/ml_classifier/ml_classifier.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/top/ml_pipeline_fsm.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/top/ml_pipeline.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/top/top_wrapper.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/common/mac.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/common/mac_array.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/common/ram.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/common/done_latch.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/decimator/fir_coef_rom.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/decimator/fir_decim_datapath.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/decimator/fir_decim_ctrl.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/decimator/fir_decim.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/decimator/decimator_x64.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/fft/twiddle_rom.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/fft/fft_butterfly.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/fft/fft_datapath.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/fft/fft_ctrl.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/fft/fft.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/fft/isqrt.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/fft/magnitude_datapath.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/fft/magnitude_ctrl.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/fft/magnitude.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/spectrogram/prescale.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/spectrogram/spectrogram_datapath.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/spectrogram/spectrogram_ctrl.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/spectrogram/spectrogram.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/weight_rom.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/bundle_rom.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/normalize_datapath.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/normalize_ctrl.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/normalize.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/conv2d_datapath.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/conv2d_ctrl.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/conv2d_top.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/maxpool_datapath.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/maxpool_ctrl.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/maxpool.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/dense_datapath.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/dense_ctrl.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/dense.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/argmax.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/cnn_core_datapath.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/cnn_core_ctrl.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/cnn_core.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/block_feeder_datapath.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/block_feeder_ctrl.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/block_feeder.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/cnn_seq_ctrl.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/cnn_path.v
+set_global_assignment -name VERILOG_FILE ../04.RTL/cnn/cnn.v
+set_location_assignment PIN_M9 -to CLOCK_50
+set_location_assignment PIN_U7 -to KEY[0]
+set_location_assignment PIN_U13 -to SW[0]
+set_location_assignment PIN_AA2 -to LEDR[0]
+set_location_assignment PIN_AA1 -to LEDR[1]
+set_location_assignment PIN_W2 -to LEDR[2]
+set_location_assignment PIN_Y3 -to LEDR[3]
+set_location_assignment PIN_N16 -to GPIO_0_0
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CLOCK_50
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to KEY[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SW[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO_0_0
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LEDR[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LEDR[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LEDR[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LEDR[3]
+set_location_assignment PIN_W9 -to KEY[1]
+set_location_assignment PIN_M7 -to KEY[2]
+set_location_assignment PIN_M6 -to KEY[3]
+set_location_assignment PIN_V13 -to SW[1]
+set_location_assignment PIN_T13 -to SW[2]
+set_location_assignment PIN_T12 -to SW[3]
+set_location_assignment PIN_AA15 -to SW[4]
+set_location_assignment PIN_AB15 -to SW[5]
+set_location_assignment PIN_AA14 -to SW[6]
+set_location_assignment PIN_AA13 -to SW[7]
+set_location_assignment PIN_AB13 -to SW[8]
+set_location_assignment PIN_AB12 -to SW[9]
+set_location_assignment PIN_N2 -to LEDR[4]
+set_location_assignment PIN_N1 -to LEDR[5]
+set_location_assignment PIN_U2 -to LEDR[6]
+set_location_assignment PIN_U1 -to LEDR[7]
+set_location_assignment PIN_L2 -to LEDR[8]
+set_location_assignment PIN_L1 -to LEDR[9]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to KEY[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to KEY[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to KEY[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SW[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SW[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SW[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SW[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SW[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SW[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SW[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SW[8]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SW[9]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LEDR[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LEDR[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LEDR[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LEDR[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LEDR[8]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LEDR[9]
+set_parameter -name UART_BAUD_RATE 115200
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name TOP_LEVEL_ENTITY top_wrapper

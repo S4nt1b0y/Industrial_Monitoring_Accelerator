@@ -1,6 +1,10 @@
 /*
  * Module: ml_pipeline_fsm
  * Control FSM for one 64-sample channel block at a time.
+ *
+ * S_STORE_FFT reads the FFT bins one per cycle and S_STORE_SORT sorts
+ * the peaks in a separate cycle, so each step fits in one clock period
+ * at 50 MHz. This adds 34 cycles per channel.
  */
 module ml_pipeline_fsm (
     input  wire       clk,
@@ -8,12 +12,15 @@ module ml_pipeline_fsm (
     input  wire       valid_i,
     input  wire [1:0] channel_i,
     input  wire       fft_done_i,
+    input  wire       store_last_i,
     input  wire       mdc_done_i,
     input  wire       classifier_valid_i,
     output wire       ready_o,
     output reg        capture_o,
     output reg        fft_start_o,
     output reg        mdc_start_o,
+    output reg        store_init_o,
+    output reg        store_step_o,
     output reg        store_fft_o,
     output reg        store_mdc_o,
     output reg        classifier_start_o,
@@ -35,6 +42,8 @@ localparam [1:0] CH_Y_B = 2'd3;
 localparam [3:0] S_IDLE          = 4'd0;
 localparam [3:0] S_START_FFT     = 4'd1;
 localparam [3:0] S_WAIT_FFT      = 4'd2;
+localparam [3:0] S_STORE_FFT     = 4'd7;
+localparam [3:0] S_STORE_SORT    = 4'd8;
 localparam [3:0] S_START_MDC     = 4'd3;
 localparam [3:0] S_WAIT_MDC      = 4'd4;
 localparam [3:0] S_CLASSIFY      = 4'd5;
@@ -50,6 +59,8 @@ always @(*) begin
     capture_o          = 1'b0;
     fft_start_o        = 1'b0;
     mdc_start_o        = 1'b0;
+    store_init_o       = 1'b0;
+    store_step_o       = 1'b0;
     store_fft_o        = 1'b0;
     store_mdc_o        = 1'b0;
     classifier_start_o = 1'b0;
@@ -72,9 +83,22 @@ always @(*) begin
 
         S_WAIT_FFT: begin
             if (fft_done_i) begin
-                store_fft_o = 1'b1;
-                state_next  = S_START_MDC;
+                store_init_o = 1'b1;   // clear the peak accumulators
+                state_next   = S_STORE_FFT;
             end
+        end
+
+        // One bin per cycle. store_last_i is high on the last bin.
+        S_STORE_FFT: begin
+            store_step_o = 1'b1;
+            if (store_last_i)
+                state_next = S_STORE_SORT;
+        end
+
+        // Peak sort in its own cycle, separate from the last bin.
+        S_STORE_SORT: begin
+            store_fft_o = 1'b1;
+            state_next  = S_START_MDC;
         end
 
         S_START_MDC: begin

@@ -37,8 +37,15 @@ wire       fft_done;
 wire       mdc_start;
 wire       mdc_done;
 wire       mdc_result_valid;
+wire       store_init;
+wire       store_step;
 wire       store_fft;
 wire       store_mdc;
+
+/* Bin counter for S_STORE_FFT. store_last is high on the last bin. */
+localparam BIN_BITS = 6;   // 33 bins fit in 6 bits
+reg  [BIN_BITS-1:0] bin_i;
+wire store_last = (bin_i == FFT_BIN_COUNT - 1);
 wire       classifier_start;
 wire       classifier_valid;
 wire [1:0] channel_sel;
@@ -114,20 +121,20 @@ task update_top3;
     input [M-1:0] idx;
     begin
         if ((mag > top_mag_0) || ((mag == top_mag_0) && (idx < top_idx_0))) begin
-            top_mag_2 = top_mag_1;
-            top_idx_2 = top_idx_1;
-            top_mag_1 = top_mag_0;
-            top_idx_1 = top_idx_0;
-            top_mag_0 = mag;
-            top_idx_0 = idx;
+            top_mag_2 <= top_mag_1;
+            top_idx_2 <= top_idx_1;
+            top_mag_1 <= top_mag_0;
+            top_idx_1 <= top_idx_0;
+            top_mag_0 <= mag;
+            top_idx_0 <= idx;
         end else if ((mag > top_mag_1) || ((mag == top_mag_1) && (idx < top_idx_1))) begin
-            top_mag_2 = top_mag_1;
-            top_idx_2 = top_idx_1;
-            top_mag_1 = mag;
-            top_idx_1 = idx;
+            top_mag_2 <= top_mag_1;
+            top_idx_2 <= top_idx_1;
+            top_mag_1 <= mag;
+            top_idx_1 <= idx;
         end else if ((mag > top_mag_2) || ((mag == top_mag_2) && (idx < top_idx_2))) begin
-            top_mag_2 = mag;
-            top_idx_2 = idx;
+            top_mag_2 <= mag;
+            top_idx_2 <= idx;
         end
     end
 endtask
@@ -169,6 +176,7 @@ always @(posedge clk or negedge rst_n) begin
         peak_0           <= {M{1'b0}};
         peak_1           <= {M{1'b0}};
         peak_2           <= {M{1'b0}};
+        bin_i            <= {BIN_BITS{1'b0}};
     end else begin
         if (fsm_capture) begin
             sample_block_reg <= sample_block_i;
@@ -177,25 +185,30 @@ always @(posedge clk or negedge rst_n) begin
             end
         end
 
-        if (store_fft) begin
-            top_mag_0 = {DATA_WIDTH{1'b0}};
-            top_mag_1 = {DATA_WIDTH{1'b0}};
-            top_mag_2 = {DATA_WIDTH{1'b0}};
-            top_idx_0 = {M{1'b1}};
-            top_idx_1 = {M{1'b1}};
-            top_idx_2 = {M{1'b1}};
-
-            for (i = 0; i < FFT_BIN_COUNT; i = i + 1) begin
-                mag_i = fft_magnitude(
-                    fft_out_re[(i+1)*DATA_WIDTH-1 -: DATA_WIDTH],
-                    fft_out_im[(i+1)*DATA_WIDTH-1 -: DATA_WIDTH]
-                );
-                features[((channel_sel * FFT_BIN_COUNT + i) * DATA_WIDTH) +: DATA_WIDTH] <= mag_i;
-                update_top3(mag_i, i[M-1:0]);
-            end
-
-            sort_three_indices(top_idx_0, top_idx_1, top_idx_2, peak_0, peak_1, peak_2);
+        /* One bin per cycle, so bin select, magnitude and peak update
+         * fit in one clock period. */
+        if (store_init) begin
+            top_mag_0 <= {DATA_WIDTH{1'b0}};
+            top_mag_1 <= {DATA_WIDTH{1'b0}};
+            top_mag_2 <= {DATA_WIDTH{1'b0}};
+            top_idx_0 <= {M{1'b1}};
+            top_idx_1 <= {M{1'b1}};
+            top_idx_2 <= {M{1'b1}};
+            bin_i     <= {BIN_BITS{1'b0}};
         end
+
+        if (store_step) begin
+            mag_i = fft_magnitude(
+                fft_out_re[(bin_i+1)*DATA_WIDTH-1 -: DATA_WIDTH],
+                fft_out_im[(bin_i+1)*DATA_WIDTH-1 -: DATA_WIDTH]
+            );
+            features[((channel_sel * FFT_BIN_COUNT + bin_i) * DATA_WIDTH) +: DATA_WIDTH] <= mag_i;
+            update_top3(mag_i, bin_i[M-1:0]);
+            bin_i <= bin_i + {{(BIN_BITS-1){1'b0}}, 1'b1};
+        end
+
+        if (store_fft)
+            sort_three_indices(top_idx_0, top_idx_1, top_idx_2, peak_0, peak_1, peak_2);
 
         if (store_mdc) begin
             insert_pos = FFT_FEATURES + (channel_sel * 2);
@@ -211,12 +224,15 @@ ml_pipeline_fsm u_fsm (
     .valid_i(valid_i),
     .channel_i(channel_i),
     .fft_done_i(fft_done),
+    .store_last_i(store_last),
     .mdc_done_i(mdc_done),
     .classifier_valid_i(classifier_valid),
     .ready_o(ready_o),
     .capture_o(fsm_capture),
     .fft_start_o(fft_start),
     .mdc_start_o(mdc_start),
+    .store_init_o(store_init),
+    .store_step_o(store_step),
     .store_fft_o(store_fft),
     .store_mdc_o(store_mdc),
     .classifier_start_o(classifier_start),

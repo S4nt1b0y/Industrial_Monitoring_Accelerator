@@ -1,7 +1,15 @@
 module top_wrapper #(
     parameter DATA_WIDTH  = 16,
     parameter N           = 64,
-    parameter CLK_FREQ_HZ = 50000000
+    parameter CLK_FREQ_HZ = 50000000,
+    // Serial baud rate. The default 9600 is used by tb_top_wrapper;
+    // 08.Quartus sets 115200 for the board.
+    parameter UART_BAUD_RATE = 9600,
+    // Directory of the CNN weight .hex files. $readmemh resolves it
+    // against the tool's working directory. The default is for
+    // 08.Quartus; testbenches override it. A wrong path gives no error:
+    // the ROMs load as zeros.
+    parameter CNN_WEIGHTS_DIR = "../04.RTL/cnn/weights/"
 )(
     input  wire        CLOCK_50,
     input  wire [3:0]  KEY,
@@ -34,8 +42,6 @@ reg Led_Unbalaced;
 reg Led_disalaighn;
 reg Led_desgaste;
 
-localparam UART_BAUD_RATE = 9600;
-
 wire [7:0] uart_data;
 wire       uart_valid;
 wire       frame_valid;
@@ -57,12 +63,12 @@ wire [1:0] cnn_class_o;
 wire selected_valid;
 wire [1:0] selected_class;
 
-assign ml_valid_i  = frame_valid && !ml_swith;
-assign cnn_valid_i = frame_valid &&  ml_swith;
-assign frame_ready = ml_swith ? cnn_ready_o : ml_ready_o;
+assign ml_valid_i  = frame_valid && !ml_switch;
+assign cnn_valid_i = frame_valid &&  ml_switch;
+assign frame_ready = ml_switch ? cnn_ready_o : ml_ready_o;
 
-assign selected_valid = ml_swith ? cnn_valid_o : ml_valid_o;
-assign selected_class = ml_swith ? cnn_class_o : ml_class_o;
+assign selected_valid = ml_switch ? cnn_valid_o : ml_valid_o;
+assign selected_class = ml_switch ? cnn_class_o : ml_class_o;
 
 uart_rx #(
     .CLK_FREQ_HZ(CLK_FREQ_HZ),
@@ -105,21 +111,28 @@ ml_pipeline #(
     .class_o(ml_class_o)
 );
 
-// cnn #(
-//     .DATA_WIDTH(DATA_WIDTH),
-//     .N(N)
-// ) u_cnn (
-//     .clk(clk),
-//     .rst_n(rst_n),
-//     .acc_x_a_i(acc_x_a),
-//     .acc_x_b_i(acc_x_b),
-//     .acc_y_a_i(acc_y_a),
-//     .acc_y_b_i(acc_y_b),
-//     .valid_i(cnn_valid_i),
-//     .ready_o(cnn_ready_o),
-//     .valid_o(cnn_valid_o),
-//     .class_o(cnn_class_o)
-// );
+// CNN path. Takes the same sample_block and channel as u_ml_pipeline.
+// ready_o stays high for channels 2 and 3, which are discarded.
+cnn #(
+    .DATA_WIDTH(DATA_WIDTH),
+    .N(N),
+    .KERNEL_FILE({CNN_WEIGHTS_DIR, "conv1_kernels.hex"}),
+    .CBIAS_FILE ({CNN_WEIGHTS_DIR, "conv1_bias.hex"}),
+    .DBIAS_FILE ({CNN_WEIGHTS_DIR, "dense_b.hex"}),
+    .DW0_FILE   ({CNN_WEIGHTS_DIR, "dense_w_c0.hex"}),
+    .DW1_FILE   ({CNN_WEIGHTS_DIR, "dense_w_c1.hex"}),
+    .DW2_FILE   ({CNN_WEIGHTS_DIR, "dense_w_c2.hex"}),
+    .DW3_FILE   ({CNN_WEIGHTS_DIR, "dense_w_c3.hex"})
+) u_cnn (
+    .clk(clk),
+    .rst_n(rst_n),
+    .sample_block_i(sample_block),
+    .channel_i(frame_channel),
+    .valid_i(cnn_valid_i),
+    .ready_o(cnn_ready_o),
+    .valid_o(cnn_valid_o),
+    .class_o(cnn_class_o)
+);
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
