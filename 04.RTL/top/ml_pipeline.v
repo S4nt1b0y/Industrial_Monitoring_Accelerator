@@ -242,7 +242,7 @@ ml_pipeline_fsm u_fsm (
     .store_mdc_o(store_mdc),
     .classifier_start_o(classifier_start),
     .channel_sel_o(channel_sel),
-    .store_fft_done_i(store_fft_done_reg) // CORREÇÃO: Conecta o sinal de conclusão
+    .store_fft_done_i(store_fft_done_reg) // Conecta o sinal de conclusão
 );
 
 fftu_dif #(

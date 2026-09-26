@@ -2,22 +2,12 @@ module top_wrapper #(
     parameter DATA_WIDTH  = 16,
     parameter N           = 64,
     parameter CLK_FREQ_HZ = 50000000,
-    // Was a fixed 9600. Promoted to a parameter because the two paths
-    // want different rates and the board, not the RTL, should decide:
-    // the ML path classifies from a single 512-byte frame, while the CNN
-    // path needs 576 of them (36,864 raw samples per channel) for one
-    // result -- over five minutes at 9600, about 26 seconds at 115200.
-    // Default left at 9600 so existing testbenches and bring-up notes
-    // are unaffected; set 115200 when synthesising for the CNN demo.
-    parameter UART_BAUD_RATE = 9600
+    parameter UART_BAUD_RATE = 9600 // Mantido para compatibilidade, mas não usado
 )(
     input  wire        CLOCK_50,
     input  wire [3:0]  KEY,
     input  wire [9:0]  SW,
-
-    // GPIO para RX do CP2102
-    input  wire        GPIO_0_0,
-
+    input  wire        GPIO_0_0, // Não usado no teste interno
     output wire [9:0]  LEDR
 );
 
@@ -27,28 +17,24 @@ module top_wrapper #(
 wire clk;
 wire rst_n;
 wire ml_switch;
-wire uart_rx_i;
 
 assign clk       = CLOCK_50;
 assign rst_n     = KEY[0];      // KEY é ativo em nível baixo
 assign ml_switch = SW[0];
-assign uart_rx_i = GPIO_0_0;
 
 //------------------------------------------------------------------
-// Sinais internos dos LEDs
+// Sinais internos
 //------------------------------------------------------------------
 reg Led_Normal;
 reg Led_Unbalaced;
 reg Led_disalaighn;
 reg Led_desgaste;
 
-wire [7:0] uart_data;
-wire       uart_valid;
-wire       frame_valid;
-wire       frame_ready;
-wire       frame_overflow;
 wire signed [N*DATA_WIDTH-1:0] sample_block;
 wire [1:0] frame_channel;
+wire       frame_valid;
+wire       frame_ready;
+wire       frame_overflow; // Não usado no gerador interno
 
 wire ml_valid_i;
 wire ml_ready_o;
@@ -63,6 +49,7 @@ wire [1:0] cnn_class_o;
 wire selected_valid;
 wire [1:0] selected_class;
 
+// Lógica de seleção (ML ou CNN)
 assign ml_valid_i  = frame_valid && !ml_switch;
 assign cnn_valid_i = frame_valid &&  ml_switch;
 assign frame_ready = ml_switch ? cnn_ready_o : ml_ready_o;
@@ -70,33 +57,24 @@ assign frame_ready = ml_switch ? cnn_ready_o : ml_ready_o;
 assign selected_valid = ml_switch ? cnn_valid_o : ml_valid_o;
 assign selected_class = ml_switch ? cnn_class_o : ml_class_o;
 
-uart_rx #(
-    .CLK_FREQ_HZ(CLK_FREQ_HZ),
-    .BAUD_RATE(UART_BAUD_RATE)
-) u_uart_rx (
-    .clk(clk),
-    .rst_n(rst_n),
-    .rx_i(uart_rx_i),
-    .enable_i(1'b1),
-    .valid_o(uart_valid),
-    .data_o(uart_data)
-);
-
-uart_frame_buffer #(
+//------------------------------------------------------------------
+// INSTANCIAÇÃO DO GERADOR DE DADOS INTERNO (Substitui a UART)
+//------------------------------------------------------------------
+data_generator #(
     .DATA_WIDTH(DATA_WIDTH),
     .N(N)
-) u_uart_frame_buffer (
+) u_data_gen (
     .clk(clk),
     .rst_n(rst_n),
-    .byte_i(uart_data),
-    .byte_valid_i(uart_valid),
-    .frame_ready_i(frame_ready),
-    .frame_valid_o(frame_valid),
-    .sample_block_o(sample_block),
+    .ready_i(frame_ready), // Espera o pipeline estar pronto
+    .valid_o(frame_valid), // Gera o pulso de válido
     .channel_o(frame_channel),
-    .overflow_o(frame_overflow)
+    .sample_block_o(sample_block)
 );
 
+//------------------------------------------------------------------
+// PIPELINE DE ML
+//------------------------------------------------------------------
 ml_pipeline #(
     .DATA_WIDTH(DATA_WIDTH),
     .N(N)
@@ -111,25 +89,12 @@ ml_pipeline #(
     .class_o(ml_class_o)
 );
 
-// Takes sample_block/channel like u_ml_pipeline above, not the four
-// separate acc_* buses the earlier commented-out sketch assumed: the
-// frame buffer only ever exposes one channel block at a time. The CNN
-// keeps ready_o asserted for channels 2 and 3 as well, which it
-// discards, so ingestion never stalls on them.
-//cnn #(
-//    .DATA_WIDTH(DATA_WIDTH),
-//    .N(N)
-//) u_cnn (
-//    .clk(clk),
-//    .rst_n(rst_n),
-//    .sample_block_i(sample_block),
-//    .channel_i(frame_channel),
-//    .valid_i(cnn_valid_i),
-//    .ready_o(cnn_ready_o),
-//    .valid_o(cnn_valid_o),
-//    .class_o(cnn_class_o)
-//);
+// O módulo CNN está comentado no seu código original, então mantemos assim
+//cnn #( ... ) u_cnn ( ... );
 
+//------------------------------------------------------------------
+// LÓGICA DOS LEDs
+//------------------------------------------------------------------
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         Led_Normal     <= 1'b0;
@@ -149,12 +114,10 @@ always @(posedge clk or negedge rst_n) begin
     end
 end
 
-
 assign LEDR[0] = Led_Normal;
 assign LEDR[1] = Led_Unbalaced;
 assign LEDR[2] = Led_disalaighn;
 assign LEDR[3] = Led_desgaste;
-
 assign LEDR[9:4] = 6'b0;
 
 endmodule

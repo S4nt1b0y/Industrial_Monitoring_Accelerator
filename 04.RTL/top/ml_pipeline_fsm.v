@@ -21,13 +21,6 @@ module ml_pipeline_fsm (
     output reg [1:0]  channel_sel_o
 );
 
-localparam [2:0] STAGE_IDLE        = 3'd0;
-localparam [2:0] STAGE_PROCESS_X_A = 3'd1;
-localparam [2:0] STAGE_PROCESS_X_B = 3'd2;
-localparam [2:0] STAGE_PROCESS_Y_A = 3'd3;
-localparam [2:0] STAGE_PROCESS_Y_B = 3'd4;
-localparam [2:0] STAGE_CLASSIFY    = 3'd5;
-
 localparam [1:0] CH_X_A = 2'd0;
 localparam [1:0] CH_X_B = 2'd1;
 localparam [1:0] CH_Y_A = 2'd2;
